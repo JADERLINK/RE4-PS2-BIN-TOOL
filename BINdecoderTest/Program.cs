@@ -12,21 +12,29 @@ namespace BINdecoderTest
         static void Main(string[] args)
         {
             Console.WriteLine("Start");
-            Console.WriteLine("BINdecoderTest Version A.1.0.0.0");
+            Console.WriteLine("BINdecoderTest Version A.1.0.0.1");
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".BIN")
             {
-                bool itIsScenario = false;
+                bool ForceDefaultBinType = false;
 
-                if (args.Length >= 2 && args[1].ToUpper() =="TRUE")
+                if (args.Length >= 2 && args[1].ToUpper() == "TRUE")
                 {
-                    itIsScenario = true;
+                    ForceDefaultBinType = true;
                 }
 
                 Console.WriteLine(args[0]);
                 try
                 {
-                    BINdecoder.Decode(args[0], itIsScenario);
+                    FileInfo fileInfo = new FileInfo(args[0]);
+                    string baseName = fileInfo.Name.Remove(fileInfo.Name.Length - fileInfo.Extension.Length, fileInfo.Extension.Length);
+
+                    Stream stream = fileInfo.OpenRead();
+
+                    var bin = BINdecoder.Decode(stream, args[0], ForceDefaultBinType);
+                    BINdecoder.CreateObjMtl(bin, fileInfo.DirectoryName, baseName, baseName);
+                    BINdecoder.CreateIdxbin(bin, fileInfo.DirectoryName, baseName);
+                    BINdecoder.CreateDrawDistanceBoxObj(bin, fileInfo.DirectoryName, baseName);
                 }
                 catch (Exception ex)
                 {
