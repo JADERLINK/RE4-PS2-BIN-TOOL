@@ -12,15 +12,22 @@ namespace BINdecoderTest
         static void Main(string[] args)
         {
             Console.WriteLine("Start");
-            Console.WriteLine("BINdecoderTest Version A.1.0.0.1");
+            Console.WriteLine("BINdecoderTest Version A.1.0.0.2");
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".BIN")
             {
                 bool ForceDefaultBinType = false;
 
+                bool CreateDebugFiles = false;
+
                 if (args.Length >= 2 && args[1].ToUpper() == "TRUE")
                 {
                     ForceDefaultBinType = true;
+                }
+
+                if (args.Length >= 3 && args[2].ToUpper() == "TRUE")
+                {
+                    CreateDebugFiles = true;
                 }
 
                 Console.WriteLine(args[0]);
@@ -31,10 +38,16 @@ namespace BINdecoderTest
 
                     Stream stream = fileInfo.OpenRead();
 
-                    var bin = BINdecoder.Decode(stream, args[0], ForceDefaultBinType);
+                    var bin = BINdecoder.Decode(stream, args[0], ForceDefaultBinType, CreateDebugFiles);
                     BINdecoder.CreateObjMtl(bin, fileInfo.DirectoryName, baseName, baseName);
                     BINdecoder.CreateIdxbin(bin, fileInfo.DirectoryName, baseName);
-                    BINdecoder.CreateDrawDistanceBoxObj(bin, fileInfo.DirectoryName, baseName);
+
+                    if (CreateDebugFiles)
+                    {
+                        BINdecoder.CreateDrawDistanceBoxObj(bin, fileInfo.DirectoryName, baseName);
+                        BINdecoder.CreateScaleLimitBoxObj(bin, fileInfo.DirectoryName, baseName);
+                    }
+                 
                 }
                 catch (Exception ex)
                 {

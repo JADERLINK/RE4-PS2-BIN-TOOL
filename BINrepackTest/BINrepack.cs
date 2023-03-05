@@ -16,13 +16,13 @@ namespace BINrepackTest
 
      Em desenvolvimento
      Para Pesquisas
-     26-02-2023
-     version: alfa.1.0.0.1
+     05-03-2023
+     version: alfa.1.0.0.2
      */
     public static class BINrepack
     {
 
-        public static void Repack(string idxbipath, string objpath, string binpath, bool compressVertices = false) 
+        public static void Repack(string idxbipath, string objpath, string binpath) 
         {
 
             StreamReader idx = File.OpenText(idxbipath);
@@ -65,7 +65,37 @@ namespace BINrepackTest
             fileStream.Close();
 
             // --------------
-          
+
+            bool CompressVertices = false;
+            bool AutoScale = false;
+            float AllScale = 1.0f;
+            float FarthestVertex = 0;
+
+            if (pair.ContainsKey("COMPRESSVERTICES"))
+            {
+                try
+                {
+                    CompressVertices = bool.Parse(pair["COMPRESSVERTICES"].Trim());
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            if (pair.ContainsKey("AUTOSCALE"))
+            {
+                try
+                {
+                    AutoScale = bool.Parse(pair["AUTOSCALE"].Trim());
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            //---
+
+
             Dictionary<string, List<List<refFace>>> IndexLists = new Dictionary<string, List<List<refFace>>>();
 
             for (int iG = 0; iG < arqObj.Groups.Count; iG++)
@@ -106,20 +136,21 @@ namespace BINrepackTest
             }
 
 
-            #region Compactação de vertices, em desenvolvimento
-
-            //TriOrder n = new TriOrder(2,3,1);
+            #region Compactação de vertices
 
             // ------------ 
             // Compacta as vertices
 
-            if (compressVertices)
+            TriOrder lastFirtOrder = new TriOrder(1, 2, 3);
+
+            if (CompressVertices)
             {
 
                 Dictionary<string, List<List<refFace>>> IndexListsCompressed = new Dictionary<string, List<List<refFace>>>();
 
                 foreach (var Pair in IndexLists)
                 {
+
                     List<Triangle> triangles = new List<Triangle>();
                     for (int i = 0; i < Pair.Value.Count; i++)
                     {
@@ -138,7 +169,6 @@ namespace BINrepackTest
 
                     //---
 
-
                     List<List<refFace>> index = new List<List<refFace>>();
 
                     if (triangles.Count > 0)
@@ -146,9 +176,6 @@ namespace BINrepackTest
 
                         List<refFace> temp = new List<refFace>();
 
-                        //temp.Add(triangles[0].A);
-                        //temp.Add(triangles[0].B);
-                        //temp.Add(triangles[0].C);
                         Triangle last = triangles[0];
                         (int r1, int r2, int r3) lastOrder = (1, 2, 3);
 
@@ -156,8 +183,6 @@ namespace BINrepackTest
 
                         bool isFirt = true;
                         bool isAdded = false;
-
-                        Triangle? found = null;
 
                         while (triangles.Count != 0)
                         {
@@ -170,8 +195,7 @@ namespace BINrepackTest
                             for (int i = 0; i < cont.Length; i++)
                             {
                                 TriOrder nextOrder = new TriOrder(cont[i][1].Value.VertexIndex, cont[i][2].Value.VertexIndex, cont[i][3].Value.VertexIndex);
-                                TriOrder lastFirtOrder = new TriOrder(last[1].Value.VertexIndex, last[2].Value.VertexIndex, last[3].Value.VertexIndex);
-
+                              
                                 (int r1, int r2, int r3) Order1oldlast = (0, 0, 0);
                                 (int r1, int r2, int r3) Order2next = (0, 0, 0);
 
@@ -218,63 +242,12 @@ namespace BINrepackTest
 
                             } // fim do  for (int i = 0; i < cont.Length; i++)
 
-
                             // considerar que não achou nada
                             // considerar achou e estava status firt
                             // considerar achou e estava status not firt
                             // considarar que cont != 0, mas não achou
 
-                            if (cont.Length != 0)
-                            {
-
-                                if (isAdded) // ele achou valor, e colocou na variavel "temp"
-                                {
-                                    // não tem isso
-                                    //last = triangles[0];
-                                    //lastOrder = (1, 2, 3);
-                                    //triangles.RemoveAt(0);
-
-                                    //isFirt = false;
-                                    //isAdded = false;
-                                    continue;
-                                }
-                                else // ele não achou valor
-                                {
-                                    // o mesmo que cont.Length == 0)
-                                    if (isFirt)
-                                    {
-                                        temp.Add(last.A);
-                                        temp.Add(last.B);
-                                        temp.Add(last.C);
-
-                                        index.Add(temp);
-                                        temp = new List<refFace>();
-                                        last = triangles[0];
-                                        lastOrder = (1, 2, 3);
-                                        triangles.RemoveAt(0);
-
-                                        isFirt = true;
-                                        isAdded = false;
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        index.Add(temp);
-                                        temp = new List<refFace>();
-                                        last = triangles[0];
-                                        lastOrder = (1, 2, 3);
-                                        triangles.RemoveAt(0);
-
-                                        isFirt = true;
-                                        isAdded = false;
-                                        continue;
-                                    }
-                                }
-
-
-                            }
-                            //
-                            else  // equivale a  cont.Length == 0
+                            if (cont.Length == 0 || (cont.Length != 0 && isAdded == false))
                             {
                                 if (isFirt)
                                 {
@@ -304,11 +277,20 @@ namespace BINrepackTest
                                     isAdded = false;
                                     continue;
                                 }
-
                             }
+                            else if (temp.Count >= 40)
+                            {
+                                index.Add(temp);
+                                temp = new List<refFace>();
+                                last = triangles[0];
+                                lastOrder = (1, 2, 3);
+                                triangles.RemoveAt(0);
 
-
-
+                                isFirt = true;
+                                isAdded = false;
+                                continue;
+                            }
+                            
                         } // fim do  while (triangles.Count != 0)
 
 
@@ -339,8 +321,6 @@ namespace BINrepackTest
 
 
 
-
-
                 }//fim do  foreach (var Pair in IndexLists)
 
                 if (IndexListsCompressed.Count != 0)
@@ -353,6 +333,7 @@ namespace BINrepackTest
             // ------------
 
             #endregion
+
 
             List<Noded> nodes = new List<Noded>();
 
@@ -374,12 +355,18 @@ namespace BINrepackTest
                         vertex.VerticeY = (arqObj.Vertices[triangles[i][ip].VertexIndex - 1].Y);
                         vertex.VerticeZ = (arqObj.Vertices[triangles[i][ip].VertexIndex - 1].Z);
 
-                        vertex.NormalX = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].X);
-                        vertex.NormalY = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].Y);
-                        vertex.NormalZ = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].Z);
+                        if (arqObj.Normals.Count != 0)
+                        {
+                            vertex.NormalX = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].X);
+                            vertex.NormalY = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].Y);
+                            vertex.NormalZ = (arqObj.Normals[triangles[i][ip].NormalIndex - 1].Z);
+                        }
 
-                        vertex.TextureU = (arqObj.Textures[triangles[i][ip].TextureIndex - 1].X);
-                        vertex.TextureV = (arqObj.Textures[triangles[i][ip].TextureIndex - 1].Y);
+                        if (arqObj.Textures.Count != 0)
+                        {
+                            vertex.TextureU = (arqObj.Textures[triangles[i][ip].TextureIndex - 1].X);
+                            vertex.TextureV = (arqObj.Textures[triangles[i][ip].TextureIndex - 1].Y);
+                        }
 
                         if (ip == 0 || ip == 1)
                         {
@@ -401,6 +388,40 @@ namespace BINrepackTest
 
                         part.Add(vertex);
 
+                        // ---
+
+                        if (AutoScale)
+                        {
+                            float temp = vertex.VerticeX;
+                            if (temp < 0)
+                            {
+                                temp *= -1;
+                            }
+                            if (temp > FarthestVertex)
+                            {
+                                FarthestVertex = temp;
+                            }
+
+                            temp = vertex.VerticeY;
+                            if (temp < 0)
+                            {
+                                temp *= -1;
+                            }
+                            if (temp > FarthestVertex)
+                            {
+                                FarthestVertex = temp;
+                            }
+
+                            temp = vertex.VerticeZ;
+                            if (temp < 0)
+                            {
+                                temp *= -1;
+                            }
+                            if (temp > FarthestVertex)
+                            {
+                                FarthestVertex = temp;
+                            }
+                        }
                     }
 
                     binVerticesLineBase.Add(part);
@@ -462,6 +483,8 @@ namespace BINrepackTest
 
             //---------
 
+
+
             bool IsScenarioBin = false;
             bool ScenarioUseColors = true;
 
@@ -490,6 +513,18 @@ namespace BINrepackTest
             }
 
             // TopTagVifHeader_Scales  ScenarioVerticeColors
+
+            if (AutoScale)
+            {
+                // regra de 3:
+                // FarthestVertex == short.MaxValue
+                // A              ==  B
+                // FarthestVertex * B = A * short.MaxValue
+                // B = (A * short.MaxValue) / FarthestVertex;
+                // A = (FarthestVertex * B) / short.MaxValue;
+                // scale = FarthestVertex / short.MaxValue;
+                AllScale = FarthestVertex / short.MaxValue;
+            }
 
             float[] TopTagVifHeader_Scales = new float[nodes.Count];
             byte[][] ScenarioVerticeColors = new byte[nodes.Count][];
@@ -551,6 +586,11 @@ namespace BINrepackTest
             {
 
                 byte b2 = (byte)(nodes[t].subMeshparts.Count -1);
+                if (nodes[t].subMeshparts.Count > 256)
+                {
+                    b2 = 255;
+                }
+
                 byte b3 = 0;
 
              
@@ -656,8 +696,14 @@ namespace BINrepackTest
                         });
                     }
 
+                    float scale = TopTagVifHeader_Scales[t];
+                    if (AutoScale)
+                    {
+                        scale = AllScale;
+                    }
+
                     // TopTagVifHeader
-                    nodeBytes.AddRange(MakeTopTagVifHeader((byte)nodes[t].subMeshparts[i].Count, TopTagVifHeader_Scales[t], i == 0));
+                    nodeBytes.AddRange(MakeTopTagVifHeader((byte)nodes[t].subMeshparts[i].Count, scale, i == 0));
 
                     int caculo = nodes[t].subMeshparts[i].Count * 24;
                     int vertexBlocklength = caculo / 0x10;
@@ -674,9 +720,9 @@ namespace BINrepackTest
                     {
                         byte[] line = new byte[24];
 
-                        var VerticeX = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeX / TopTagVifHeader_Scales[t]));
-                        var VerticeY = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeY / TopTagVifHeader_Scales[t]));
-                        var VerticeZ = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeZ / TopTagVifHeader_Scales[t]));
+                        var VerticeX = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeX / scale));
+                        var VerticeY = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeY / scale));
+                        var VerticeZ = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeZ / scale));
 
                         line[0] = VerticeX[0];
                         line[1] = VerticeX[1];
@@ -857,6 +903,8 @@ namespace BINrepackTest
                 }
 
             }
+
+            #region unknown4
 
             int unknown4Lenght = 0x40;
 
@@ -1071,7 +1119,6 @@ namespace BINrepackTest
                 }
             }
 
-
             if (pair.ContainsKey("DRAWDISTANCEPOSITIVEY"))
             {
                 try
@@ -1107,6 +1154,8 @@ namespace BINrepackTest
                 {
                 }
             }
+
+            #endregion
 
             //---
 
@@ -1160,6 +1209,7 @@ namespace BINrepackTest
 
                 materials.Add(materialLine);
             }
+
 
             // calculos de offset;
 
@@ -1324,7 +1374,6 @@ namespace BINrepackTest
             return res;
         }
 
-
         static short ParseFloatToShort(float value) 
         {
             string sv = value.ToString("F", System.Globalization.CultureInfo.InvariantCulture).Split('.')[0];
@@ -1380,6 +1429,7 @@ namespace BINrepackTest
         {
             return (VertexIndex + TextureIndex + NormalIndex + FaceVertexID + FaceID + "").GetHashCode();
         }
+
     }
 
     public struct Triangle 
@@ -1476,8 +1526,8 @@ namespace BINrepackTest
         {
             return (A.GetHashCode() + B.GetHashCode() + C.GetHashCode() + "").GetHashCode();
         }
-    }
 
+    }
 
     public struct TriOrder
     {
@@ -1487,6 +1537,7 @@ namespace BINrepackTest
 
         public TriOrder(int vertexIndex1, int vertexIndex2, int vertexIndex3)
         {
+         
             op1 = (0,0,0);
             op2 = (0,0,0);
             op3 = (0,0,0);
@@ -1513,7 +1564,7 @@ namespace BINrepackTest
             //321
             // 3 > 2 && 3 > 1 && 2 > 1
 
-            // nota: do jeito que foi feito se a entrada for 1, 2, 3 por exemplo todos seram true;
+            // nota: do jeito que foi feito se a entrada for 1, 2, 3 por exemplo todos serão true;
             //bool check123 = vertexIndex1 < vertexIndex2 && vertexIndex1 < vertexIndex3 && vertexIndex2 < vertexIndex3;
             //bool check231 = vertexIndex2 < vertexIndex3 && vertexIndex2 > vertexIndex1 && vertexIndex3 > vertexIndex1;
             //bool check312 = vertexIndex3 > vertexIndex1 && vertexIndex3 > vertexIndex2 && vertexIndex1 < vertexIndex2;
@@ -1529,8 +1580,10 @@ namespace BINrepackTest
             bool check213 = vertexIndex1 > vertexIndex2 && vertexIndex1 < vertexIndex3 && vertexIndex2 < vertexIndex3;
             bool check321 = vertexIndex1 > vertexIndex2 && vertexIndex1 > vertexIndex3 && vertexIndex2 > vertexIndex3;
 
+            
             if (check123 || check231 || check312)
             {
+                
                 op1.r1 = 1;
                 op1.r2 = 2;
                 op1.r3 = 3;
@@ -1542,10 +1595,11 @@ namespace BINrepackTest
                 op3.r1 = 3;
                 op3.r2 = 1;
                 op3.r3 = 2;
-
+                
             }
             else if (check132 || check213 || check321)
             {
+                
                 op1.r1 = 1;
                 op1.r2 = 3;
                 op1.r3 = 2;
@@ -1557,13 +1611,12 @@ namespace BINrepackTest
                 op3.r1 = 3;
                 op3.r2 = 2;
                 op3.r3 = 1;
+                
             }
+
+            
         }
 
-
-
-   
-    
     }
 
 
@@ -1625,7 +1678,7 @@ namespace BINrepackTest
             }
 
             //
-            if (check_op2_op1)
+            else if (check_op2_op1)
             {
                 lastUseOrder = lastOrder.op2;
                 nextUseOrder = nextOrder.op1;
@@ -1645,7 +1698,7 @@ namespace BINrepackTest
             }
 
             //
-            if (check_op3_op1)
+            else if (check_op3_op1)
             {
                 lastUseOrder = lastOrder.op3;
                 nextUseOrder = nextOrder.op1;

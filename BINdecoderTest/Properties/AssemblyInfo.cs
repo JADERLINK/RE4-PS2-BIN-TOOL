@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // As informações gerais sobre um assembly são controladas por
 // conjunto de atributos. Altere estes valores de atributo para modificar as informações
 // associadas a um assembly.
-[assembly: AssemblyTitle("SMDdecoderTest")]
+[assembly: AssemblyTitle("BINdecoderTest")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SMDdecoderTest")]
+[assembly: AssemblyProduct("BINdecoderTest")]
 [assembly: AssemblyCopyright("Copyright © JADERLINK 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -12,17 +12,10 @@ namespace BINrepackTest
         static void Main(string[] args)
         {
             Console.WriteLine("Start");
-            Console.WriteLine("BINrepackTest Version A.1.0.0.1");
+            Console.WriteLine("BINrepackTest Version A.1.0.0.2");
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".IDXBIN")
             {
-                bool compressVertices = false;
-
-                if (args.Length >= 2 && args[1].ToUpper() == "TRUE")
-                {
-                    compressVertices = true;
-                }
-
 
                 var fileinfo = new FileInfo(args[0]);
                 string objPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - 6) + "obj";
@@ -33,7 +26,7 @@ namespace BINrepackTest
                     try
                     {
                         string binPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - 6) + "bin";
-                        BINrepack.Repack(fileinfo.FullName, objPath, binPath, compressVertices);
+                        BINrepack.Repack(fileinfo.FullName, objPath, binPath);
                     }
                     catch (Exception ex)
                     {
