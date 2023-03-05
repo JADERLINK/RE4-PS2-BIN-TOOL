@@ -16,7 +16,7 @@ Update: alfa.1.0.0.2
 [ObjLoader by chrisjansson](https://github.com/chrisjansson/ObjLoader/).
 Encontra-se no BINrepackTest, código modificado, não considera mais a tag "g", os grupos são criados a partir da tag de material "usemtl" 
 
-    ## BINdecoderTest
+## BINdecoderTest
 
 Decodifica e cria um .obj do bin.
 São criados os arquivos .txt2 .obj .mtl e .idxbin
@@ -41,5 +41,6 @@ Cria um novo arquivo .BIN a partir do conteúdo do .IDXBIN e .OBJ
   - Adicionado auto escala, com a função ativa o programa vai determinar a escala automaticamente, aproveitando o máximo das coordenadas do "short" mantendo o objeto mais fidedigno ao original, para ativar essa função o arquivo .idxbin deve conter a tag "AutoScale:True", caso queira mudar as escalas manualmente por material mude a tag de "True" para "False".
   - Alguns pequenos bugs que crashavam o programa foram corrigidos.
 
-At.te: JADERLINK
+**At.te: JADERLINK**
+
 2023-03-05
