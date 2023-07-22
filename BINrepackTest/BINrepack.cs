@@ -16,16 +16,17 @@ namespace BINrepackTest
 
      Em desenvolvimento
      Para Pesquisas
-     05-03-2023
-     version: alfa.1.0.0.2
+     22-07-2023
+     version: alfa.1.0.0.3
      */
-    public static class BINrepack
+    public static partial class BINrepack
     {
+        public const string VERSION = "A.1.0.0.3";
 
-        public static void Repack(string idxbipath, string objpath, string binpath) 
+        public static void RepackObj(string idxbinPath, string objPath, string binpath) 
         {
 
-            StreamReader idx = File.OpenText(idxbipath);
+            StreamReader idx = File.OpenText(idxbinPath);
 
             Dictionary<string, string> pair = new Dictionary<string, string>();
 
@@ -42,34 +43,56 @@ namespace BINrepackTest
 
             foreach (var item in lines)
             {
-                if (item != null)
+                if (item != null && item.Length != 0)
                 {
-                    var split = item.Split(new char[] { ':' });
-                    if (split.Length >= 2)
+                    if (!item.TrimStart().StartsWith(":"))
                     {
-                        string key = split[0].ToUpper().Trim();
-                        if (!pair.ContainsKey(key))
+                        var split = item.Split(new char[] { ':' });
+                        if (split.Length >= 2)
                         {
-                            pair.Add(key, split[1]);
+                            string key = split[0].ToUpper().Trim();
+                            if (!pair.ContainsKey(key))
+                            {
+                                pair.Add(key, split[1]);
+                            }
                         }
                     }
+                    
                 }
             }
+
 
             // load obj
             var objLoaderFactory = new ObjLoaderFactory();
             var objLoader = objLoaderFactory.Create(new MaterialNullStreamProvider());
 
-            var fileStream = new System.IO.FileStream(objpath, System.IO.FileMode.Open);
+            var fileStream = new System.IO.FileStream(objPath, System.IO.FileMode.Open);
             LoadResult arqObj = objLoader.Load(fileStream);
             fileStream.Close();
 
             // --------------
 
+            bool IsScenarioBin = false;
             bool CompressVertices = false;
-            bool AutoScale = false;
-            float AllScale = 1.0f;
+            bool AutoConversionFactor = false;
+
+            float GlobalScale = 1.0f;
+            float ManualConversionFactor = 0f;
+
+            float AutoConversionFactorValue = 1.0f;
             float FarthestVertex = 0;
+
+
+            if (pair.ContainsKey("ISSCENARIOBIN"))
+            {
+                try
+                {
+                    IsScenarioBin = bool.Parse(pair["ISSCENARIOBIN"].Trim());
+                }
+                catch (Exception)
+                {
+                }
+            }
 
             if (pair.ContainsKey("COMPRESSVERTICES"))
             {
@@ -82,16 +105,43 @@ namespace BINrepackTest
                 }
             }
 
-            if (pair.ContainsKey("AUTOSCALE"))
+            if (pair.ContainsKey("AUTOCONVERSIONFACTOR"))
             {
                 try
                 {
-                    AutoScale = bool.Parse(pair["AUTOSCALE"].Trim());
+                    AutoConversionFactor = bool.Parse(pair["AUTOCONVERSIONFACTOR"].Trim());
                 }
                 catch (Exception)
                 {
                 }
             }
+
+
+            if (pair.ContainsKey("GLOBALSCALE"))
+            {
+                try
+                {
+                    string value = ReturnValidFloatValue(pair["GLOBALSCALE"]);
+                    GlobalScale = float.Parse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+
+            if (pair.ContainsKey("MANUALCONVERSIONFACTOR"))
+            {
+                try
+                {
+                    string value = ReturnValidFloatValue(pair["MANUALCONVERSIONFACTOR"]);
+                    ManualConversionFactor = float.Parse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
 
             //---
 
@@ -390,9 +440,9 @@ namespace BINrepackTest
 
                         // ---
 
-                        if (AutoScale)
+                        if (AutoConversionFactor)
                         {
-                            float temp = vertex.VerticeX;
+                            float temp = vertex.VerticeX * GlobalScale;
                             if (temp < 0)
                             {
                                 temp *= -1;
@@ -402,7 +452,7 @@ namespace BINrepackTest
                                 FarthestVertex = temp;
                             }
 
-                            temp = vertex.VerticeY;
+                            temp = vertex.VerticeY * GlobalScale;
                             if (temp < 0)
                             {
                                 temp *= -1;
@@ -412,7 +462,7 @@ namespace BINrepackTest
                                 FarthestVertex = temp;
                             }
 
-                            temp = vertex.VerticeZ;
+                            temp = vertex.VerticeZ * GlobalScale;
                             if (temp < 0)
                             {
                                 temp *= -1;
@@ -484,37 +534,7 @@ namespace BINrepackTest
             //---------
 
 
-
-            bool IsScenarioBin = false;
-            bool ScenarioUseColors = true;
-
-
-            if (pair.ContainsKey("ISSCENARIOBIN"))
-            {
-                try
-                {
-                    IsScenarioBin = bool.Parse(pair["ISSCENARIOBIN"].Trim());
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-
-            if (pair.ContainsKey("SCENARIOUSECOLORS"))
-            {
-                try
-                {
-                    ScenarioUseColors = bool.Parse(pair["SCENARIOUSECOLORS"].Trim());
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-            // TopTagVifHeader_Scales  ScenarioVerticeColors
-
-            if (AutoScale)
+            if (AutoConversionFactor)
             {
                 // regra de 3:
                 // FarthestVertex == short.MaxValue
@@ -523,58 +543,7 @@ namespace BINrepackTest
                 // B = (A * short.MaxValue) / FarthestVertex;
                 // A = (FarthestVertex * B) / short.MaxValue;
                 // scale = FarthestVertex / short.MaxValue;
-                AllScale = FarthestVertex / short.MaxValue;
-            }
-
-            float[] TopTagVifHeader_Scales = new float[nodes.Count];
-            byte[][] ScenarioVerticeColors = new byte[nodes.Count][];
-
-            for (int t = 0; t < nodes.Count; t++)
-            {
-                if (pair.ContainsKey("TOPTAGVIFHEADER_SCALE_" + t))
-                {
-                    try
-                    {
-                        string value = ReturnValidFloatValue(pair["TOPTAGVIFHEADER_SCALE_" + t]);
-                        TopTagVifHeader_Scales[t] = float.Parse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
-                    }
-                    catch (Exception)
-                    {
-                        TopTagVifHeader_Scales[t] = 0.001f;
-                    }
-
-                }
-                else
-                {
-                    TopTagVifHeader_Scales[t] = 0.001f;
-                }
-
-
-                byte[] color = new byte[3];
-
-                if (ScenarioUseColors && pair.ContainsKey("SCENARISCENARIOVERTICECOLOR_" + t))
-                {
-
-                    string value = ReturnValidHexValue(pair["SCENARISCENARIOVERTICECOLOR_" + t].ToUpper());
-                    value = value.PadRight(3 * 2, 'F');
-
-                    int cont = 0;
-                    for (int ipros = 0; ipros < 3; ipros++)
-                    {
-                        string v = value[cont].ToString() + value[cont + 1].ToString();
-                        color[ipros] = byte.Parse(v, System.Globalization.NumberStyles.HexNumber);
-                        cont += 2;
-                    }
-
-                }
-                else 
-                {
-                    color[0] = 255;
-                    color[1] = 255;
-                    color[2] = 255;
-                }
-                ScenarioVerticeColors[t] = color;
-
+                AutoConversionFactorValue = FarthestVertex / short.MaxValue;
             }
 
 
@@ -593,44 +562,12 @@ namespace BINrepackTest
 
                 byte b3 = 0;
 
-             
-                if (!IsScenarioBin && pair.ContainsKey("NODEHEADER_SPLITCOUNT_" + t))
-                {
-                    
-                    try
-                    {
-                        string value = ReturnValidDecValue(pair["NODEHEADER_SPLITCOUNT_" + t]);
-                        b3 = byte.Parse(value, System.Globalization.NumberStyles.Integer);
-                    }
-                    catch (Exception)
-                    {
-                        b3 = 1;
-                    }
-
-                }
-                else if (!IsScenarioBin)
+                if (!IsScenarioBin)
                 {
                     b3 = 1;
                 }
 
                 byte[] proximosBytes = new byte[b3];
-
-                if (!IsScenarioBin && pair.ContainsKey("NODEHEADER_SPLITVALUES_" + t))
-                {
-
-                    string value = ReturnValidHexValue(pair["NODEHEADER_SPLITVALUES_" + t].ToUpper());
-                    value = value.PadRight(b3 * 2, '0');
-
-                    int cont = 0;
-                    for (int ipros = 0; ipros < b3; ipros++)
-                    {
-                        string v = value[cont].ToString() + value[cont + 1].ToString();
-                        proximosBytes[ipros] = byte.Parse(v, System.Globalization.NumberStyles.HexNumber);
-                        cont += 2;
-                    }
-
-                }
-
 
                 //---------------
                 int totalBytesNoNodeHeaderArray = 4 + b3;
@@ -679,7 +616,14 @@ namespace BINrepackTest
             }
 
 
+            float valueConversionFactor = ManualConversionFactor;
+            if (AutoConversionFactor || ManualConversionFactor == 0)
+            {
+                valueConversionFactor = AutoConversionFactorValue;
+            }
+
             List<List<byte>> NodesBlocks = new List<List<byte>>();
+            List<string> NodesNames = new List<string>();
 
             for (int t = 0; t < nodes.Count; t++)
             {
@@ -696,14 +640,9 @@ namespace BINrepackTest
                         });
                     }
 
-                    float scale = TopTagVifHeader_Scales[t];
-                    if (AutoScale)
-                    {
-                        scale = AllScale;
-                    }
-
+              
                     // TopTagVifHeader
-                    nodeBytes.AddRange(MakeTopTagVifHeader((byte)nodes[t].subMeshparts[i].Count, scale, i == 0));
+                    nodeBytes.AddRange(MakeTopTagVifHeader((byte)nodes[t].subMeshparts[i].Count, valueConversionFactor, i == 0));
 
                     int caculo = nodes[t].subMeshparts[i].Count * 24;
                     int vertexBlocklength = caculo / 0x10;
@@ -720,9 +659,9 @@ namespace BINrepackTest
                     {
                         byte[] line = new byte[24];
 
-                        var VerticeX = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeX / scale));
-                        var VerticeY = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeY / scale));
-                        var VerticeZ = BitConverter.GetBytes(ParseFloatToShort(nodes[t].subMeshparts[i][l].VerticeZ / scale));
+                        var VerticeX = BitConverter.GetBytes(ParseFloatToShort((nodes[t].subMeshparts[i][l].VerticeX * GlobalScale) / valueConversionFactor));
+                        var VerticeY = BitConverter.GetBytes(ParseFloatToShort((nodes[t].subMeshparts[i][l].VerticeY * GlobalScale) / valueConversionFactor));
+                        var VerticeZ = BitConverter.GetBytes(ParseFloatToShort((nodes[t].subMeshparts[i][l].VerticeZ * GlobalScale) / valueConversionFactor));
 
                         line[0] = VerticeX[0];
                         line[1] = VerticeX[1];
@@ -767,31 +706,18 @@ namespace BINrepackTest
                             line[0X16] = 0X80;
                             line[0X17] = 0X00;
 
-                            if (ScenarioUseColors)
-                            {
-                                line[0X10] = ScenarioVerticeColors[t][0];
-                                line[0X11] = 0;
+                            line[0X10] = 255;
+                            line[0X11] = 0;
 
-                                line[0X12] = ScenarioVerticeColors[t][1];
-                                line[0X13] = 0;
+                            line[0X12] = 255;
+                            line[0X13] = 0;
 
-                                line[0X14] = ScenarioVerticeColors[t][2];
-                                line[0X15] = 0;
-                            }
-                            else 
-                            {
-                                line[0X10] = NormalX[0];
-                                line[0X11] = NormalX[1];
+                            line[0X14] = 255;
+                            line[0X15] = 0;
 
-                                line[0X12] = NormalY[0];
-                                line[0X13] = NormalY[1];
 
-                                line[0X14] = NormalZ[0];
-                                line[0X15] = NormalZ[1];
-                            }
-                       
                         }
-                        else 
+                        else
                         {
                             line[0X8] = NormalX[0];
                             line[0X9] = NormalX[1];
@@ -830,6 +756,7 @@ namespace BINrepackTest
                 }
 
                 NodesBlocks.Add(nodeBytes);
+                NodesNames.Add(nodes[t].materialname);
             }
 
 
@@ -849,7 +776,6 @@ namespace BINrepackTest
             byte MaterialCount = (byte)NodesBlocks.Count;
             byte unknown3 = 0;
             int MaterialsPoint = 0;
-            byte[] unknown4 = new byte[0];
 
             List<byte[]> Bones = new List<byte[]>();
             List<byte[]> materials = new List<byte[]>();
@@ -906,43 +832,7 @@ namespace BINrepackTest
 
             #region unknown4
 
-            int unknown4Lenght = 0x40;
-
-            if (pair.ContainsKey("UNKNOWN4LENGTH"))
-            {
-
-                try
-                {
-                    string value = ReturnValidDecValue(pair["UNKNOWN4LENGTH"]);
-                    unknown4Lenght = byte.Parse(value, System.Globalization.NumberStyles.Integer);
-                }
-                catch (Exception)
-                {
-                }
-
-            }
-            if (unknown4Lenght < 0x40)
-            {
-                unknown4Lenght = 0x40;
-            }
-
-
-            unknown4 = new byte[unknown4Lenght];
-
-            if (pair.ContainsKey("UNKNOWN4"))
-            {
-                string value = ReturnValidHexValue(pair["UNKNOWN4"].ToUpper());
-                value = value.PadRight(unknown4Lenght * 2, '0');
-
-                int cont = 0;
-                for (int ipros = 0; ipros < unknown4Lenght; ipros++)
-                {
-                    string v = value[cont].ToString() + value[cont + 1].ToString();
-                    unknown4[ipros] = byte.Parse(v, System.Globalization.NumberStyles.HexNumber);
-                    cont += 2;
-                }
-
-            }
+            byte[] unknown4 = new byte[0x40];
 
             // new unknown4 partes
 
@@ -1184,13 +1074,17 @@ namespace BINrepackTest
 
             for (int i = 0; i < NodesBlocks.Count; i++)
             {
-                //MATERIALLINE_0
+                //MATERIALLINE
                 byte[] materialLine = new byte[0x10];
 
-                if (pair.ContainsKey("MATERIALLINE_" + i))
-                {
+                // NodesNames
 
-                    string value = ReturnValidHexValue(pair["MATERIALLINE_" + i].ToUpper());
+                string keyMaterial = "MATERIALLINE?" + NodesNames[i].ToUpper();
+                if (pair.ContainsKey(keyMaterial))
+                {
+                    Console.WriteLine($"[{i}] Used material: " + keyMaterial);
+
+                    string value = ReturnValidHexValue(pair[keyMaterial].ToUpper());
                     value = value.PadRight(0x10 * 2, '0');
 
                     int cont = 0;
@@ -1213,7 +1107,7 @@ namespace BINrepackTest
 
             // calculos de offset;
 
-            bonesPoint = 0x10 + unknown4Lenght;
+            bonesPoint = 0x10 + unknown4.Length;
             MaterialsPoint = bonesPoint + (BonesCount * 0x10);
 
             int firtNodePoint = MaterialsPoint + (NodesBlocks.Count * 0x10);
@@ -1269,7 +1163,7 @@ namespace BINrepackTest
         }
 
 
-        static byte[] MakeTopTagVifHeader(byte vertexlength, float TopTagVif_Scale, bool isFirt)
+        static byte[] MakeTopTagVifHeader(byte vertexlength, float TopTagVif_Scale, bool isFirst)
         {
             int caculo = vertexlength * 24;
             int vertexBlocklength = caculo / 0x10;
@@ -1281,10 +1175,10 @@ namespace BINrepackTest
 
             int vertexBlocklength8 = (vertexBlocklength * 0x10) / 8;
 
-            byte firt = 0x10;
-            if (isFirt)
+            byte first = 0x10;
+            if (isFirst)
             {
-                firt = 0x60;
+                first = 0x60;
             }
 
             byte[] scale = BitConverter.GetBytes(TopTagVif_Scale);
@@ -1292,7 +1186,7 @@ namespace BINrepackTest
             //vertexlength in 0x10
 
             byte[] res = new byte[0x30] {
-            0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x04, 0x04, 0x00, 0x01, 0x20, 0x80, 0x01, 0x6C, vertexlength, 0x80, 0x00, 0x00, 0x00, 0x40, 0x2E, 0x30, 0x12, 0x05, 0x00, 0x00, scale[0], scale[1], scale[2], scale[3], (byte)vertexBlocklength, 0x00, 0x00, firt, 0x00, 0x00, 0x00, 0x00, 0x04, 0x04, 0x00, 0x01, 0x21, 0x80, (byte)vertexBlocklength8, 0x6D
+            0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x04, 0x04, 0x00, 0x01, 0x20, 0x80, 0x01, 0x6C, vertexlength, 0x80, 0x00, 0x00, 0x00, 0x40, 0x2E, 0x30, 0x12, 0x05, 0x00, 0x00, scale[0], scale[1], scale[2], scale[3], (byte)vertexBlocklength, 0x00, 0x00, first, 0x00, 0x00, 0x00, 0x00, 0x04, 0x04, 0x00, 0x01, 0x21, 0x80, (byte)vertexBlocklength8, 0x6D
             };
     
             return res;

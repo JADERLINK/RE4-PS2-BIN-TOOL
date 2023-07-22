@@ -15,11 +15,14 @@ namespace BINdecoderTest
 
     Em desenvolvimento
     Para Pesquisas
-    05-03-2023
-    version: alfa.1.0.0.2
+    22-07-2023
+    version: alfa.1.0.0.3
     */
     public static class BINdecoder
     {
+        public const float GLOBAL_SCALE = 100f;
+        public const string VERSION = "A.1.0.0.3";
+
         public static BIN Decode(Stream stream, string filepatchfortxt2, bool ForceDefaultBinType = false, bool createTxt2Files = false)
         {
 
@@ -32,7 +35,7 @@ namespace BINdecoderTest
             AltTextWriter NodeHeaderArrayText = new AltTextWriter(filepatchfortxt2 + ".NodeHeaderArray.txt2", createTxt2Files);
 
             text.WriteLine("##BINdecoderTest##");
-            text.WriteLine("##Version A.1.0.0.2##");
+            text.WriteLine($"##Version {VERSION}##");
             text.WriteLine("");
 
             BIN bin = new BIN();
@@ -217,17 +220,9 @@ namespace BINdecoderTest
                 {
                     uint U_unknown4_unk009 = BitConverter.ToUInt32(unknown4_unk009, 0);
 
-                    if (U_unknown4_unk009 == 0xA0000000)
-                    {
-                        binType = BinType.ScenarioWithNormals;
-                    }
-                    else if (U_unknown4_unk009 == 0xE0000000)
+                    if (U_unknown4_unk009 == 0xA0000000 || U_unknown4_unk009 == 0xE0000000)
                     {
                         binType = BinType.ScenarioWithColors;
-                    }
-                    else if (U_unknown4_unk009 == 0xB0000000 || U_unknown4_unk009 == 0xF0000000)
-                    {
-                        binType = BinType.ScenarioAlt;
                     }
                 }
 
@@ -239,6 +234,31 @@ namespace BINdecoderTest
                 bin.binType = binType;
 
                 text.WriteLine("binType: " + Enum.GetName(typeof(BinType), binType));
+
+
+                //bonepair_addr_
+                if (bonepair_addr_ != 0x0)
+                {
+                    stream.Position = bonepair_addr_;
+                    text.WriteLine("");
+                    text.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
+
+                    byte[] bonepairCount_ = new byte[4];
+                    stream.Read(bonepairCount_, 0, 4);
+                    uint bonepairCount = BitConverter.ToUInt32(bonepairCount_, 0);
+                    bin.bonepairCount = bonepairCount;
+                    text.WriteLine("bonepairCount: " + bonepairCount);
+
+                    List<byte[]> bonepairLines = new List<byte[]>();
+                    for (int i = 0; i < bonepairCount; i++)
+                    {
+                        byte[] bonepairLine = new byte[8];
+                        stream.Read(bonepairLine, 0, 8);
+                        text.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(bonepairLine));
+                        bonepairLines.Add(bonepairLine);
+                    }
+                    bin.bonepairLines = bonepairLines.ToArray();
+                }
 
 
             }// fim da parte referente a "unknown4"
@@ -345,7 +365,9 @@ namespace BINdecoderTest
                     counterNodeHeaderArrayLenght += 0x10;
                 }
 
-                node.NodeHeaderArray = NodeHeaderArray;
+
+
+                node.NodeHeaderArray = header.ToArray();
 
 
                 int valorTotalDeSegmentos = (int)(NodeHeaderArray[0x2]) + 1;
@@ -362,7 +384,7 @@ namespace BINdecoderTest
 
                     text.WriteLine("");
 
-                    if (binType == BinType.Default || binType == BinType.ScenarioAlt) // arquivo bin dentro de .SMD não tem essa parte
+                    if (binType == BinType.Default) // arquivo bin dentro de .SMD não tem essa parte
                     {
                         //SubBoneHeader
                         text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
@@ -395,13 +417,15 @@ namespace BINdecoderTest
                         text.WriteLine("");
                         int temp = 0;
 
-                        byte[][] SubBoneTableLines = new byte[SubBoneTableLinesAmount][];
+                        SubBoneTableLine[] SubBoneTableLines = new SubBoneTableLine[SubBoneTableLinesAmount];
 
                         for (int a = 0; a < SubBoneTableLinesAmount; a++)
                         {
                             byte[] arr = SubBoneTableArray.Skip(temp).Take(32).ToArray();
 
-                            SubBoneTableLines[a] = arr;
+                            SubBoneTableLine line = new SubBoneTableLine();
+                            line.subBoneTableLine = arr;
+                            SubBoneTableLines[a] = line;
 
                             temp += 32;
                             text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + a.ToString("D2") + "]: " + BitConverter.ToString(arr));
@@ -457,7 +481,7 @@ namespace BINdecoderTest
                     text.WriteLine("");
                     text.WriteLine("subMeshChunk:");
 
-                    if (binType == BinType.ScenarioWithColors || binType == BinType.ScenarioWithNormals)
+                    if (binType == BinType.ScenarioWithColors)
                     {
                         text.WriteLine("Offset em hexadecimal: [MaterialCount][valorTotalDePartes][linha]: VerticeX, VerticeY, VerticeZ, IndexMount, TextureU, TextureV, UnknownA, IndexComplement, NormalX, NormalY, NormalZ, UnknownB");
                     }
@@ -475,7 +499,7 @@ namespace BINdecoderTest
                         VertexLine v = new VertexLine();
                         v.line = line;
 
-                        if (binType == BinType.ScenarioWithColors || binType == BinType.ScenarioWithNormals)
+                        if (binType == BinType.ScenarioWithColors)
                         {
                             v.VerticeX = BitConverter.ToInt16(line, 0);
                             v.VerticeY = BitConverter.ToInt16(line, 2);
@@ -630,6 +654,203 @@ namespace BINdecoderTest
             return bin;
         }
 
+        //Studiomdl Data
+        public static void CreateSMD(BIN bin, string baseDiretory, string baseFileName, string baseTextureName)
+        {
+            if (baseDiretory[baseDiretory.Length - 1] != '\\')
+            {
+                baseDiretory += "\\";
+            }
+
+            TextWriter text = new FileInfo(baseDiretory + baseFileName + ".smd").CreateText();
+            text.WriteLine("version 1");
+            text.WriteLine("nodes");
+
+            for (int i = 0; i < bin.bones.Length; i++)
+            {
+                text.WriteLine(bin.bones[i].BoneID + " BONE_" + i.ToString("D3")  + " " + bin.bones[i].BoneParent);
+            }
+
+            text.WriteLine("end");
+
+            text.WriteLine("skeleton");
+            text.WriteLine("time 0");
+
+            for (int i = 0; i < bin.bones.Length; i++)
+            {
+                text.WriteLine(bin.bones[i].BoneID  + "  " + 
+                    (bin.bones[i].PositionX / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                    (bin.bones[i].PositionZ * -1 / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " + 
+                    (bin.bones[i].PositionY / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "  0.000000 -0.000000 0.000000");
+            }
+
+            text.WriteLine("end");
+
+            text.WriteLine("triangles");
+
+            for (int t = 0; t < bin.Nodes.Length; t++)
+            {
+                int QuantidadeTotalDeproximosBytes = bin.Nodes[t].NodeHeaderArray[0x3];
+                byte[] useBoneList = bin.Nodes[t].NodeHeaderArray.Skip(4).Take(QuantidadeTotalDeproximosBytes).ToArray();
+
+
+                for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
+                {
+                    List<string> Weights = new List<string>();
+
+                    if (bin.Nodes[t].Segments[i].SubBoneTableLines != null)
+                    {
+                        for (int l = 0; l < bin.Nodes[t].Segments[i].SubBoneTableLines.Length; l++)
+                        {
+                            int Amount = bin.Nodes[t].Segments[i].SubBoneTableLines[l].Amount;
+                            string res = Amount.ToString();
+
+                            if (Amount > 0)
+                            {
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId1 / 4);
+                                uint UseBone = 0;
+                                if (UseId < useBoneList.Length)
+                                {
+                                    UseBone = useBoneList[UseId];
+                                }
+
+                                res += " " + UseBone + " " +
+                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight1.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                            }
+
+                            if (Amount > 1)
+                            {
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId2 / 4);
+                                uint UseBone = 0;
+                                if (UseId < useBoneList.Length)
+                                {
+                                    UseBone = useBoneList[UseId];
+                                }
+
+                                res += " " + UseBone + " " +
+                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight2.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                            }
+
+                            if (Amount > 2)
+                            {
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId3 / 4);
+                                uint UseBone = 0;
+                                if (UseId < useBoneList.Length)
+                                {
+                                    UseBone = useBoneList[UseId];
+                                }
+
+                                res += " " + UseBone + " " +
+                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight3.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            Weights.Add(res);
+                        }
+                    }
+
+
+                    bool invFace = false;
+                    int contagem = 0;
+                    while (contagem < bin.Nodes[t].Segments[i].vertexLines.Length)
+                    {
+
+                        if ((contagem - 2) > -1 &&
+                           (bin.Nodes[t].Segments[i].vertexLines[contagem].IndexComplement == 0)
+                           )
+                        {
+                            text.WriteLine("MATERIAL_" + t.ToString("D3"));
+
+                            //
+                            //string a = (contagem - 2).ToString();
+                            //string b = (contagem - 1).ToString();
+                            //string c = (contagem).ToString();
+
+                            string[] pos = new string[3];
+                            string[] normals = new string[3];
+                            string[] uvs = new string[3];
+                            string[] VertexWeights = new string[3];
+
+
+                            for (int l = 2; l > -1; l--)
+                            {
+                                VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[contagem - l];
+
+                                pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                     ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].Scale * -1 / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                     ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+
+                                uvs[l] = (((float)vertexLine.TextureU / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+
+                                if (bin.binType != BinType.ScenarioWithColors)
+                                {
+                                    normals[l] = (((float)vertexLine.NormalX / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                         ((float)vertexLine.NormalY / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                         ((float)vertexLine.NormalZ / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                                }
+                                else
+                                {
+                                    normals[l] = "0.00000 0.00000 0.00000";
+                                }
+
+                                int WeightIndex = (vertexLine.UnknownB / 2);
+                                if (Weights.Count != 0 && WeightIndex < Weights.Count)
+                                {
+
+                                    VertexWeights[l] = Weights[WeightIndex];
+                                }
+                                else 
+                                {
+                                    VertexWeights[l] = "0";
+                                }
+                            }
+
+
+                            string a = "0 " + pos[0] + " " + normals[0] + " " + uvs[0] + " " + VertexWeights[0];
+                            string b = "0 " + pos[1] + " " + normals[1] + " " + uvs[1] + " " + VertexWeights[1];
+                            string c = "0 " + pos[2] + " " + normals[2] + " " + uvs[2] + " " + VertexWeights[2];
+
+
+                            if (invFace)
+                            {
+
+                                text.WriteLine(c);
+                                text.WriteLine(b);
+                                text.WriteLine(a);
+
+                                invFace = false;
+                            }
+                            else
+                            {
+                                text.WriteLine(a);
+                                text.WriteLine(b);
+                                text.WriteLine(c);
+
+                                invFace = true;
+                            }
+
+                        }
+                        else
+                        {
+                            invFace = false;
+                        }
+
+                        contagem++;
+                    }
+
+
+
+                }
+
+
+            }
+
+            text.WriteLine("end");
+            text.WriteLine("//##BINdecoderTest##");
+            text.WriteLine($"//##Version {VERSION}##");
+            text.Close();
+
+        }
+
         public static void CreateObjMtl(BIN bin, string baseDiretory, string baseFileName, string baseTextureName)
         {
             if (baseDiretory[baseDiretory.Length - 1] != '\\')
@@ -639,13 +860,13 @@ namespace BINdecoderTest
 
             TextWriter MTLtext = new FileInfo(baseDiretory + baseFileName + ".mtl").CreateText();
             MTLtext.WriteLine("##BINdecoderTest##");
-            MTLtext.WriteLine("##Version A.1.0.0.2##");
+            MTLtext.WriteLine($"##Version {VERSION}##");
             MTLtext.WriteLine("");
 
             for (int i = 0; i < bin.materials.Length; i++)
             {
                 MTLtext.WriteLine("");
-                MTLtext.WriteLine("newmtl Material" + i);
+                MTLtext.WriteLine("newmtl MATERIAL_" + i.ToString("D3"));
                 MTLtext.WriteLine("Ka 1.000 1.000 1.000");
                 MTLtext.WriteLine("Kd 1.000 1.000 1.000");
                 MTLtext.WriteLine("Ks 0.000 0.000 0.000");
@@ -661,7 +882,7 @@ namespace BINdecoderTest
 
             TextWriter text = new FileInfo(baseDiretory + baseFileName + ".obj").CreateText();
             text.WriteLine("##BINdecoderTest##");
-            text.WriteLine("##version A.1.0.0.2##");
+            text.WriteLine($"##Version {VERSION}##");
             text.WriteLine("mtllib " + baseFileName + ".mtl");
 
             int indexGeral = 1;
@@ -670,8 +891,8 @@ namespace BINdecoderTest
             {
 
                 //usemtl Material*
-                text.WriteLine("g Material" + t);
-                text.WriteLine("usemtl Material" + t);
+                text.WriteLine("g MATERIAL_" + t.ToString("D3"));
+                text.WriteLine("usemtl MATERIAL_" + t.ToString("D3"));
 
                 for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
                 {
@@ -679,9 +900,9 @@ namespace BINdecoderTest
                     {
                         VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[l];
 
-                        text.WriteLine("v " + ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].Scale).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                        text.WriteLine("v " + ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
 
                         text.WriteLine("vt " + ((float)vertexLine.TextureU / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
                         ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
@@ -785,17 +1006,35 @@ namespace BINdecoderTest
 
             TextWriter IDXBINtext = new FileInfo(baseDiretory + baseFileName + ".idxbin").CreateText();
             IDXBINtext.WriteLine(":##BINdecoderTest##");
-            IDXBINtext.WriteLine(":##Version A.1.0.0.2##");
+            IDXBINtext.WriteLine($":##Version {VERSION}##");
+
+            IDXBINtext.WriteLine();
+
+            IDXBINtext.WriteLine("GlobalScale:" + GLOBAL_SCALE);
+
+            //conversion factor = "fator de conversão", isso é converter de float para short
 
             IDXBINtext.WriteLine("CompressVertices:True");
-            IDXBINtext.WriteLine("AutoScale:True");
+            IDXBINtext.WriteLine("AutoConversionFactor:True"); // old AutoScale
 
-            IDXBINtext.WriteLine("IsScenarioBin:" + (bin.binType == BinType.ScenarioWithNormals || bin.binType == BinType.ScenarioWithColors));
 
-            if (bin.binType == BinType.ScenarioWithNormals || bin.binType == BinType.ScenarioWithColors)
+            float tempConversionFactor = 0;
+            for (int t = 0; t < bin.materials.Length; t++)
             {
-                IDXBINtext.WriteLine("ScenarioUseColors:" + (bin.binType == BinType.ScenarioWithColors));
+                float temp = 0;
+                for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
+                {
+                    temp += bin.Nodes[t].Segments[i].Scale;
+                }
+                tempConversionFactor += temp / bin.Nodes[t].Segments.Length;
             }
+            float ManualConversionFactor = tempConversionFactor / bin.materials.Length;
+            IDXBINtext.WriteLine("ManualConversionFactor:" + ManualConversionFactor.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)); // prencher com valor
+
+
+            IDXBINtext.WriteLine("IsScenarioBin:" + (bin.binType == BinType.ScenarioWithColors));
+
+            IDXBINtext.WriteLine();
 
             IDXBINtext.WriteLine(": 2 bytes in hex");
             IDXBINtext.WriteLine("fix3000:" + BitConverter.ToString(bin.unknown0).Replace("-", ""));
@@ -805,19 +1044,9 @@ namespace BINdecoderTest
 
             IDXBINtext.WriteLine(": 1 bytes in hex");
             IDXBINtext.WriteLine("unknown2:" + bin.unknown2.ToString("X2"));
-
-            IDXBINtext.WriteLine(": decimal value");
-            IDXBINtext.WriteLine("BonesCount:" + bin.BonesCount.ToString());
-
-            IDXBINtext.WriteLine(": decimal value");
-            IDXBINtext.WriteLine("MaterialCount:" + bin.MaterialCount.ToString());
-
+        
             IDXBINtext.WriteLine(": 1 bytes in hex");
             IDXBINtext.WriteLine("unknown3:" + bin.unknown3.ToString("X2"));
-
-            //IDXBINtext.WriteLine(": decimal value");
-            //IDXBINtext.WriteLine("unknown4length:" + bin.unknown4.Length);
-            //IDXBINtext.WriteLine("unknown4:" + BitConverter.ToString(bin.unknown4).Replace("-", ""));
 
             // unknown4
             IDXBINtext.WriteLine(": 4 bytes in hex");
@@ -832,7 +1061,8 @@ namespace BINdecoderTest
             IDXBINtext.WriteLine(": 4 bytes in hex");
             IDXBINtext.WriteLine("unknown4_unk010:" + BitConverter.ToString(bin.unknown4_unk010).Replace("-", ""));
 
-            IDXBINtext.WriteLine(": DrawDistance float values");
+            IDXBINtext.WriteLine();
+            IDXBINtext.WriteLine(": ## DrawDistance float values ##");
             IDXBINtext.WriteLine("DrawDistanceNegativeX:" + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
             IDXBINtext.WriteLine("DrawDistanceNegativeY:" + bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
             IDXBINtext.WriteLine("DrawDistanceNegativeZ:" + bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
@@ -843,45 +1073,43 @@ namespace BINdecoderTest
 
             //-- unknown4 end
 
-            IDXBINtext.WriteLine(": boneLines");
+            if (bin.bonepairCount != 0)
+            {
+                IDXBINtext.WriteLine();
+                IDXBINtext.WriteLine(": ## bonepair ##");
+                IDXBINtext.WriteLine(": bonepairCount in decimal value");
+                IDXBINtext.WriteLine("bonepairCount:" + bin.bonepairCount.ToString());
 
+                IDXBINtext.WriteLine(": bonepairLines -> 8 bytes in hex");
+                for (int i = 0; i < bin.bonepairCount; i++)
+                {
+                    IDXBINtext.WriteLine("bonepairLine_" + i + ":" + BitConverter.ToString(bin.bonepairLines[i]).Replace("-", ""));
+                }
+            }
+
+
+            IDXBINtext.WriteLine();
+            IDXBINtext.WriteLine(": ## Bones ##");
+            IDXBINtext.WriteLine(": BonesCount in decimal value");
+            IDXBINtext.WriteLine("BonesCount:" + bin.BonesCount.ToString());
+
+            IDXBINtext.WriteLine(": BoneLines -> 16 bytes in hex");
             for (int i = 0; i < bin.bones.Length; i++)
             {
-                IDXBINtext.WriteLine("boneLine_" + i + ":" + BitConverter.ToString(bin.bones[i].boneLine).Replace("-", ""));
+                IDXBINtext.WriteLine("BoneLine_" + i + ":" + BitConverter.ToString(bin.bones[i].boneLine).Replace("-", ""));
             }
-                
-            IDXBINtext.WriteLine(": materialLine and NodeHeaderLine");
-            IDXBINtext.WriteLine(": materialLine_* -> 12 bytes");
+
+
+            IDXBINtext.WriteLine();
+            IDXBINtext.WriteLine(": ## MaterialLines ##");
+            IDXBINtext.WriteLine(": MaterialLine?MaterialName: -> 12 bytes in hex");
 
             for (int t = 0; t < bin.materials.Length; t++)
             {
-                IDXBINtext.WriteLine("materialLine_" + t + ":" + BitConverter.ToString(bin.materials[t].materialLine.Take(12).ToArray()).Replace("-", ""));
-
-                if (bin.binType == BinType.Default || bin.binType == BinType.ScenarioAlt)
-                {
-                    byte QuantidadeTotalDeproximosBytes = bin.Nodes[t].NodeHeaderArray[3];
-
-                    IDXBINtext.WriteLine("NodeHeader_SplitCount_" + t + ":" + QuantidadeTotalDeproximosBytes);
-                    IDXBINtext.WriteLine("NodeHeader_SplitValues_" + t + ":" + BitConverter.ToString(bin.Nodes[t].NodeHeaderArray.Skip(4).Take(QuantidadeTotalDeproximosBytes).ToArray()).Replace("-", ""));
-                }
-
-                if (bin.binType == BinType.ScenarioWithColors)
-                {
-                    IDXBINtext.WriteLine("ScenarioVerticeColor_" + t + ":FFFFFF");
-                }
-
-                // scale media
-
-                float allScales = 0;
-                for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
-                {
-                    allScales += bin.Nodes[t].Segments[i].Scale;
-                }
-
-                float scaleMedia = allScales / bin.Nodes[t].Segments.Length;
-
-                IDXBINtext.WriteLine("TopTagVifHeader_Scale_" + t + ":" + scaleMedia.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                // old materialLine_
+                IDXBINtext.WriteLine("MaterialLine?MATERIAL_" + t.ToString("D3") + ":" + BitConverter.ToString(bin.materials[t].materialLine.Take(12).ToArray()).Replace("-", ""));
             }
+
 
             IDXBINtext.Close();
         }
@@ -897,65 +1125,49 @@ namespace BINdecoderTest
 
             TextWriter text = new FileInfo(baseDiretory + baseFileName + ".DrawDistanceBox.obj").CreateText();
             text.WriteLine("##BINdecoderTest##");
-            text.WriteLine("##version A.1.0.0.2##");
+            text.WriteLine($"##Version {VERSION}##");
 
             text.WriteLine("");
+
+            string DrawDistanceNegativeX = (bin.DrawDistanceNegativeX / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+            string DrawDistanceNegativeY = (bin.DrawDistanceNegativeY / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+            string DrawDistanceNegativeZ = (bin.DrawDistanceNegativeZ / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+
+            string DrawDistancePositiveX = (bin.DrawDistancePositiveX / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+            string DrawDistancePositiveY = (bin.DrawDistancePositiveY / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+            string DrawDistancePositiveZ = (bin.DrawDistancePositiveZ / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
 
             // real
 
             //1
-            text.WriteLine("v " + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-                );
+            text.WriteLine("v " + DrawDistanceNegativeX + " " + DrawDistanceNegativeY + " " + DrawDistanceNegativeZ);
 
             //2
-            text.WriteLine("v " + bin.DrawDistancePositiveX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-            );
+            text.WriteLine("v " + DrawDistancePositiveX + " " + DrawDistancePositiveY + " " + DrawDistancePositiveZ);
 
             //inverso Y
 
             //3
-            text.WriteLine("v " + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistancePositiveY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-                );
+            text.WriteLine("v " + DrawDistanceNegativeX + " " + DrawDistancePositiveY + " " + DrawDistanceNegativeZ);
 
             //4
-            text.WriteLine("v " + bin.DrawDistancePositiveX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-            );
+            text.WriteLine("v " + DrawDistancePositiveX + " " + DrawDistanceNegativeY + " " + DrawDistancePositiveZ);
 
             // inveso Z
 
             //5
-            text.WriteLine("v " + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-           bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-           bin.DrawDistancePositiveZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-           );
+            text.WriteLine("v " + DrawDistanceNegativeX + " " + DrawDistanceNegativeY + " " + DrawDistancePositiveZ);
 
             //6
-            text.WriteLine("v " + bin.DrawDistancePositiveX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-            );
+            text.WriteLine("v " + DrawDistancePositiveX + " " + DrawDistancePositiveY + " " + DrawDistanceNegativeZ);
 
             // inverso X
 
             //7
-            text.WriteLine("v " + bin.DrawDistancePositiveX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-                );
+            text.WriteLine("v " + DrawDistancePositiveX + " " + DrawDistanceNegativeY + " " + DrawDistanceNegativeZ);
 
             //8
-            text.WriteLine("v " + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-            bin.DrawDistancePositiveZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture)
-            );
+            text.WriteLine("v " + DrawDistanceNegativeX + " " + DrawDistancePositiveY + " " + DrawDistancePositiveZ);
 
 
             text.WriteLine("g Original");
@@ -1002,7 +1214,7 @@ namespace BINdecoderTest
 
             TextWriter text = new FileInfo(baseDiretory + baseFileName + ".ScaleLimitBox.obj").CreateText();
             text.WriteLine("##BINdecoderTest##");
-            text.WriteLine("##version A.1.0.0.2##");
+            text.WriteLine($"##Version {VERSION}##");
 
             text.WriteLine("");
 
@@ -1019,8 +1231,8 @@ namespace BINdecoderTest
             }
             float scale = scalenodes / bin.Nodes.Length;
 
-            float maxPos = scale * short.MaxValue;
-            float minPos = scale * short.MinValue;
+            float maxPos = scale * short.MaxValue / GLOBAL_SCALE;
+            float minPos = scale * short.MinValue / GLOBAL_SCALE;
 
             text.WriteLine("# scale: " + scale.ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
             text.WriteLine("");
@@ -1191,6 +1403,10 @@ namespace BINdecoderTest
 
         // unknown4 end
 
+        //bonepair
+        public uint bonepairCount;
+        public byte[][] bonepairLines;
+
         //bonesList
         public Bone[] bones;
 
@@ -1208,6 +1424,14 @@ namespace BINdecoderTest
     {
         // new byte[16];
         public byte[] boneLine;
+
+        public sbyte BoneID { get { return (sbyte)boneLine[0x0]; } }
+        public sbyte BoneParent { get { return (sbyte)boneLine[0x1]; } }
+
+        public float PositionX { get { return BitConverter.ToSingle(boneLine, 0x4); } }
+        public float PositionY { get { return BitConverter.ToSingle(boneLine, 0x8); } }
+        public float PositionZ { get { return BitConverter.ToSingle(boneLine, 0xC); } }
+
     }
 
     public class Material
@@ -1235,7 +1459,8 @@ namespace BINdecoderTest
         public byte[] SubBoneHeader;
 
         //[quantidade de linhas][0x20]
-        public byte[][] SubBoneTableLines;
+        //public byte[][] SubBoneTableLines;
+        public SubBoneTableLine[] SubBoneTableLines;
 
         //--
         //TopTagVifHeader
@@ -1251,6 +1476,20 @@ namespace BINdecoderTest
         //new byte[0x10];
         public byte[] EndTagVifCommand;
     }
+
+    public class SubBoneTableLine 
+    {
+        public byte[] subBoneTableLine;
+
+        public uint boneId1 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x0); } }
+        public uint boneId2 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x4); } }
+        public uint boneId3 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x8); } }
+        public int Amount { get { return BitConverter.ToInt32(subBoneTableLine, 0xC); } }
+        public float weight1 { get { return BitConverter.ToSingle(subBoneTableLine, 0x10); } }
+        public float weight2 { get { return BitConverter.ToSingle(subBoneTableLine, 0x14); } }
+        public float weight3 { get { return BitConverter.ToSingle(subBoneTableLine, 0x18); } }
+    }
+
 
     public class VertexLine
     {
@@ -1280,8 +1519,6 @@ namespace BINdecoderTest
     public enum BinType
     {
         Default,
-        ScenarioAlt,
-        ScenarioWithNormals,
         ScenarioWithColors
     }
 

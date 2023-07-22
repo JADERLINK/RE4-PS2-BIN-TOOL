@@ -11,8 +11,8 @@ namespace BINdecoderTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Start");
-            Console.WriteLine("BINdecoderTest Version A.1.0.0.2");
+            Console.WriteLine("##BINdecoderTest##");
+            Console.WriteLine($"##Version {BINdecoder.VERSION}##");
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".BIN")
             {
@@ -40,6 +40,7 @@ namespace BINdecoderTest
 
                     var bin = BINdecoder.Decode(stream, args[0], ForceDefaultBinType, CreateDebugFiles);
                     BINdecoder.CreateObjMtl(bin, fileInfo.DirectoryName, baseName, baseName);
+                    BINdecoder.CreateSMD(bin, fileInfo.DirectoryName, baseName, baseName);
                     BINdecoder.CreateIdxbin(bin, fileInfo.DirectoryName, baseName);
 
                     if (CreateDebugFiles)
