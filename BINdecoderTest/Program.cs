@@ -11,8 +11,9 @@ namespace BINdecoderTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("##BINdecoderTest##");
-            Console.WriteLine($"##Version {BINdecoder.VERSION}##");
+            Console.WriteLine("## BINdecoderTest ##");
+            Console.WriteLine($"## Version {BINdecoder.VERSION} ##");
+            Console.WriteLine("## By JADERLINK and HardRain ##");
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".BIN")
             {

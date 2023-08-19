@@ -11,22 +11,34 @@ namespace BINrepackTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("##BINrepackTest##");
-            Console.WriteLine($"##Version {BINrepack.VERSION}##");
+            Console.WriteLine("## BINrepackTest ##");
+            Console.WriteLine($"## Version {BINrepack.VERSION} ##");
+            Console.WriteLine("## By JADERLINK and HardRain ##");
 
-            if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".IDXBIN")
+            if (args.Length >= 1 && File.Exists(args[0]) 
+                && (new FileInfo(args[0]).Extension.ToUpper() == ".OBJ"
+                || new FileInfo(args[0]).Extension.ToUpper() == ".SMD"))
+
             {
-
                 var fileinfo = new FileInfo(args[0]);
-                string objPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - 6) + "obj";
+                var idxbinPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - fileinfo.Extension.Length) + ".IDXBIN";
 
                 Console.WriteLine(args[0]);
-                if (File.Exists(objPath))
+                if (File.Exists(idxbinPath))
                 {
                     try
                     {
-                        string binPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - 6) + "bin";
-                        BINrepack.RepackObj(fileinfo.FullName, objPath, binPath);
+                        string binPath = fileinfo.FullName.Substring(0, fileinfo.FullName.Length - fileinfo.Extension.Length) + ".BIN";
+                        if (fileinfo.Extension.ToUpper().Contains("OBJ"))
+                        {
+                            BINrepack.RepackObj(idxbinPath, fileinfo.FullName, binPath);
+                        }
+                        else if (fileinfo.Extension.ToUpper().Contains("SMD"))
+                        {
+                            BINrepack.RepackSMD(idxbinPath, fileinfo.FullName, binPath);
+                        }
+                        
+                      
                     }
                     catch (Exception ex)
                     {
@@ -36,7 +48,7 @@ namespace BINrepackTest
                 }
                 else
                 {
-                    Console.WriteLine(objPath + " does not exist");
+                    Console.WriteLine(idxbinPath + " does not exist");
                 }
 
 

@@ -15,13 +15,13 @@ namespace BINdecoderTest
 
     Em desenvolvimento
     Para Pesquisas
-    22-07-2023
-    version: alfa.1.0.0.3
+    12-08-2023
+    version: alfa.1.2.0.0
     */
     public static class BINdecoder
     {
         public const float GLOBAL_SCALE = 100f;
-        public const string VERSION = "A.1.0.0.3";
+        public const string VERSION = "A.1.2.0.0";
 
         public static BIN Decode(Stream stream, string filepatchfortxt2, bool ForceDefaultBinType = false, bool createTxt2Files = false)
         {
@@ -668,7 +668,7 @@ namespace BINdecoderTest
 
             for (int i = 0; i < bin.bones.Length; i++)
             {
-                text.WriteLine(bin.bones[i].BoneID + " BONE_" + i.ToString("D3")  + " " + bin.bones[i].BoneParent);
+                text.WriteLine(bin.bones[i].BoneID + " \"BONE_" + i.ToString("D3")  + "\" " + bin.bones[i].BoneParent);
             }
 
             text.WriteLine("end");
@@ -759,10 +759,6 @@ namespace BINdecoderTest
                         {
                             text.WriteLine("MATERIAL_" + t.ToString("D3"));
 
-                            //
-                            //string a = (contagem - 2).ToString();
-                            //string b = (contagem - 1).ToString();
-                            //string c = (contagem).ToString();
 
                             string[] pos = new string[3];
                             string[] normals = new string[3];
@@ -775,17 +771,17 @@ namespace BINdecoderTest
                                 VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[contagem - l];
 
                                 pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                     ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].Scale * -1 / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                     ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                                          ((float)vertexLine.VerticeZ * -1f * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                          ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
 
                                 uvs[l] = (((float)vertexLine.TextureU / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                                          ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
 
                                 if (bin.binType != BinType.ScenarioWithColors)
                                 {
-                                    normals[l] = (((float)vertexLine.NormalX / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                         ((float)vertexLine.NormalY / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                         ((float)vertexLine.NormalZ / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                                    normals[l] = (((float)vertexLine.NormalX /  127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                                  ((float)vertexLine.NormalZ * -1f / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                                  ((float)vertexLine.NormalY / 127f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
                                 }
                                 else
                                 {
@@ -812,18 +808,17 @@ namespace BINdecoderTest
 
                             if (invFace)
                             {
-
-                                text.WriteLine(c);
-                                text.WriteLine(b);
                                 text.WriteLine(a);
+                                text.WriteLine(b);
+                                text.WriteLine(c);
 
                                 invFace = false;
                             }
                             else
                             {
-                                text.WriteLine(a);
-                                text.WriteLine(b);
                                 text.WriteLine(c);
+                                text.WriteLine(b);
+                                text.WriteLine(a);
 
                                 invFace = true;
                             }
