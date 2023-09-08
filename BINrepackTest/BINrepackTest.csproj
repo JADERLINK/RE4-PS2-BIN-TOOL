@@ -7,7 +7,7 @@
     <ProjectGuid>{2A8FD0FA-00B5-472B-A6C2-5F3E81064472}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>BINrepackTest</RootNamespace>
-    <AssemblyName>BINrepackTest</AssemblyName>
+    <AssemblyName>Re4Ps2BINrepack</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -99,6 +99,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmdReader.cs" />
+    <Compile Include="StartStructure.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>

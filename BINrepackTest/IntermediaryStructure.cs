@@ -20,22 +20,22 @@ namespace BINrepackTest
     {
         public string MaterialName { get; set; }
 
-        public List<IntermediaryTriangle> Triangles { get; set; }
+        public List<IntermediaryFace> Faces { get; set; }
 
         public IntermediaryGroup()
         {
-            Triangles = new List<IntermediaryTriangle>();
+            Faces = new List<IntermediaryFace>();
         }
     }
 
 
-    public class IntermediaryTriangle
+    public class IntermediaryFace
     {
-        public List<IntermediaryVertex> Vertices { get; set; }
+        public List<IntermediaryVertex> Vertexs { get; set; }
 
-        public IntermediaryTriangle() 
+        public IntermediaryFace() 
         {
-            Vertices = new List<IntermediaryVertex>();
+            Vertexs = new List<IntermediaryVertex>();
         }
     }
 
@@ -56,7 +56,7 @@ namespace BINrepackTest
         public float ColorG { get; set; }
         public float ColorB { get; set; }
         public float ColorA { get; set; }
-        public int links { get; set; }
+        public int Links { get; set; }
         public int BoneID1 { get; set; }
         public float Weight1 { get; set; }
 

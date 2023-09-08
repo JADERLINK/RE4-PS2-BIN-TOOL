@@ -17,13 +17,13 @@ namespace BINdecoderTest
 
             if (args.Length >= 1 && File.Exists(args[0]) && new FileInfo(args[0]).Extension.ToUpper() == ".BIN")
             {
-                bool ForceDefaultBinType = false;
+                bool createTxt2 = false;
 
                 bool CreateDebugFiles = false;
 
                 if (args.Length >= 2 && args[1].ToUpper() == "TRUE")
                 {
-                    ForceDefaultBinType = true;
+                    createTxt2 = true;
                 }
 
                 if (args.Length >= 3 && args[2].ToUpper() == "TRUE")
@@ -39,7 +39,7 @@ namespace BINdecoderTest
 
                     Stream stream = fileInfo.OpenRead();
 
-                    var bin = BINdecoder.Decode(stream, args[0], ForceDefaultBinType, CreateDebugFiles);
+                    var bin = BINdecoder.Decode(stream, args[0], createTxt2);
                     BINdecoder.CreateObjMtl(bin, fileInfo.DirectoryName, baseName, baseName);
                     BINdecoder.CreateSMD(bin, fileInfo.DirectoryName, baseName, baseName);
                     BINdecoder.CreateIdxbin(bin, fileInfo.DirectoryName, baseName);

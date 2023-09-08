@@ -7,7 +7,7 @@
     <ProjectGuid>{EECC49C8-9C70-44BC-9172-98AA4A6B7D4D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>BINdecoderTest</RootNamespace>
-    <AssemblyName>BINdecoderTest</AssemblyName>
+    <AssemblyName>Re4Ps2BINdecoder</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

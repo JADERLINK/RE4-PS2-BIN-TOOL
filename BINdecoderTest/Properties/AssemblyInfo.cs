@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // As informações gerais sobre um assembly são controladas por
 // conjunto de atributos. Altere estes valores de atributo para modificar as informações
 // associadas a um assembly.
-[assembly: AssemblyTitle("BINdecoderTest")]
-[assembly: AssemblyDescription("BINdecoderTest")]
+[assembly: AssemblyTitle("Re4Ps2BINdecoder")]
+[assembly: AssemblyDescription("Re4Ps2BINdecoder")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("BINdecoderTest")]
+[assembly: AssemblyProduct("Re4Ps2BINdecoder")]
 [assembly: AssemblyCopyright("Copyright © JADERLINK 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

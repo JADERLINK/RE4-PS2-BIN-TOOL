@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // As informações gerais sobre um assembly são controladas por
 // conjunto de atributos. Altere estes valores de atributo para modificar as informações
 // associadas a um assembly.
-[assembly: AssemblyTitle("BINrepackTest")]
-[assembly: AssemblyDescription("BINrepackTest")]
+[assembly: AssemblyTitle("Re4Ps2BINrepack")]
+[assembly: AssemblyDescription("Re4Ps2BINrepack")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("BINrepackTest")]
+[assembly: AssemblyProduct("Re4Ps2BINrepack")]
 [assembly: AssemblyCopyright("Copyright © JADERLINK 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

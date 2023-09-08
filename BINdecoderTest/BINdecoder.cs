@@ -15,270 +15,230 @@ namespace BINdecoderTest
 
     Em desenvolvimento
     Para Pesquisas
-    12-08-2023
-    version: alfa.1.2.0.0
+    08-09-2023
+    version: beta.1.3.0.0
     */
     public static class BINdecoder
     {
         public const float GLOBAL_SCALE = 100f;
-        public const string VERSION = "A.1.2.0.0";
+        public const string VERSION = "B.1.3.0.0";
 
-        public static BIN Decode(Stream stream, string filepatchfortxt2, bool ForceDefaultBinType = false, bool createTxt2Files = false)
+        public static BIN Decode(Stream stream, string filePatchForTxt2, bool createTxt2 = false)
         {
+            BinaryReader br = new BinaryReader(stream);
 
-            AltTextWriter text = new AltTextWriter(filepatchfortxt2 + ".txt2", createTxt2Files);
-            AltTextWriter SubBoneTableText = new AltTextWriter(filepatchfortxt2 + ".SubBoneTableList.txt2", createTxt2Files);
-            AltTextWriter VerticesText = new AltTextWriter(filepatchfortxt2 + ".VerticesList.txt2", createTxt2Files);
-            AltTextWriter SubBoneHeaderText = new AltTextWriter(filepatchfortxt2 + ".SubBoneHeaderList.txt2", createTxt2Files);
-            AltTextWriter TopTagVifHeaderText = new AltTextWriter(filepatchfortxt2 + ".TopTagVifHeaderList.txt2", createTxt2Files);
-            AltTextWriter EndTagVifCommandText = new AltTextWriter(filepatchfortxt2 + ".EndTagVifCommandList.txt2", createTxt2Files);
-            AltTextWriter NodeHeaderArrayText = new AltTextWriter(filepatchfortxt2 + ".NodeHeaderArray.txt2", createTxt2Files);
+            BIN bin = new BIN();
+            BinType binType = BinType.Default;
+
+            AltTextWriter text = new AltTextWriter(filePatchForTxt2 + ".txt2", createTxt2);
 
             text.WriteLine("##BINdecoderTest##");
             text.WriteLine($"##Version {VERSION}##");
             text.WriteLine("");
 
-            BIN bin = new BIN();
-
-            BinType binType = BinType.Default;
-
+         
             //fix0x3000 //unk001 //unknown0
             //offset 0x00 and 0x01
-            byte[] unknown0 = new byte[2];
-            stream.Read(unknown0, 0, 2);
+            byte[] unknown0 = br.ReadBytes(0x2);
             bin.unknown0 = unknown0;
             text.WriteLine("unknown0: " + BitConverter.ToString(unknown0) + "  {hex}");
 
 
             //unknown1 //unk002
-            // offset 0x02 and 0x03
-            byte[] unknown1 = new byte[2];
-            stream.Read(unknown1, 0, 2);
+            //offset 0x02 and 0x03
+            byte[] unknown1 = br.ReadBytes(0x2);
             bin.unknown1 = unknown1;
             text.WriteLine("unknown1: " + BitConverter.ToString(unknown1) + "  {hex}");
 
 
             //bones point //bone_addr
-            byte[] BonesPoint = new byte[4];
-            stream.Read(BonesPoint, 0, 4);
-            uint bonesPoint = BitConverter.ToUInt32(BonesPoint, 0);
+            //offset 0x07, 0x06, 0x05 and 0x04
+            uint bonesPoint = br.ReadUInt32();
             bin.bonesPoint = bonesPoint;
             text.WriteLine("bonesPoint: 0x" + bonesPoint.ToString("X8"));
 
 
             //unknown2 //unk003
-            byte[] unknown2 = new byte[1];
-            stream.Read(unknown2, 0, 1);
-            bin.unknown2 = unknown2[0];
-            text.WriteLine("unknown2: " + BitConverter.ToString(unknown2) + "  {hex}");
+            //offset 0x08
+            byte unknown2 = br.ReadByte();
+            bin.unknown2 = unknown2;
+            text.WriteLine("unknown2: 0x" + unknown2.ToString("X2"));
 
 
             //BonesCount //bone_count
-            byte[] BonesCount = new byte[1];
-            stream.Read(BonesCount, 0, 1);
-            bin.BonesCount = BonesCount[0];
-            text.WriteLine("BonesCount: " + BonesCount[0].ToString());
+            //offset 0x09
+            byte BonesCount = br.ReadByte();
+            bin.BonesCount = BonesCount;
+            text.WriteLine("BonesCount: " + BonesCount.ToString());
 
 
             //MaterialCount //table1_count
-            byte[] MaterialCount = new byte[1];
-            stream.Read(MaterialCount, 0, 1);
-            bin.MaterialCount = MaterialCount[0];
-            text.WriteLine("MaterialCount: " + MaterialCount[0].ToString());
+            //offset 0x0A
+            byte MaterialCount = br.ReadByte();
+            bin.MaterialCount = MaterialCount;
+            text.WriteLine("MaterialCount: " + MaterialCount.ToString());
 
 
-            //????  //pode ser parte de MaterialCount
-            byte[] unknown3 = new byte[1];
-            stream.Read(unknown3, 0, 1);
-            bin.unknown3 = unknown3[0];
-            text.WriteLine("unknown3: " + BitConverter.ToString(unknown3) + "  {hex}");
+            //unknown3
+            //offset 0x0B
+            byte unknown3 = br.ReadByte();
+            bin.unknown3 = unknown3;
+            text.WriteLine("unknown3: 0x" + unknown3.ToString("X2"));
 
 
             //MaterialsPoint //table1_addr
-            byte[] MaterialsPoint = new byte[4];
-            stream.Read(MaterialsPoint, 0, 4);
-            uint materialsPoint = BitConverter.ToUInt32(MaterialsPoint, 0);
+            //offset 0x0F, 0x0E, 0x0D and 0x0C 
+            uint materialsPoint = br.ReadUInt32();
             bin.materialsPoint = materialsPoint;
             text.WriteLine("MaterialsPoint: 0x" + materialsPoint.ToString("X8"));
 
+            // parte do header referente ao "unknown4"
 
-                // parte do header referente ao "unknown4"
-            {
-                int unknown4offset = (int)stream.Position;
+            text.WriteLine("unknown4 Parts:");
 
-                //unknown4 = 0x40
+            //padding
+            //offset 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 and 0x17 
+            byte[] Pad8Bytes = br.ReadBytes(0x8);
+            bin.Pad8Bytes = Pad8Bytes;
+            text.WriteLine("Pad8Bytes: " + BitConverter.ToString(Pad8Bytes) + "  {hex}");
 
-                // sequencia desconhecida;
+            //unknown4_B
+            //offset 0x18, 0x19, 0x1A and 0x1B
+            byte[] unknown4_B = br.ReadBytes(0x4);
+            bin.unknown4_B = unknown4_B;
+            text.WriteLine("unknown4_B: " + BitConverter.ToString(unknown4_B) + "  {hex}");
 
-                int unknown4_lenght = (int)(bonesPoint - 0x10);
+            //bonepair_addr
+            //offset 0x1F, 0x1E, 0x1D and 0x1C
+            uint bonepair_addr_ = br.ReadUInt32();
+            bin.bonepairPoint = bonepair_addr_;
+            text.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
 
-                byte[] unknown4 = new byte[unknown4_lenght];
-                stream.Read(unknown4, 0, unknown4_lenght);
-                text.WriteLine("unknown4: " + BitConverter.ToString(unknown4) + "  {hex}");
-                bin.unknown4 = unknown4;
+            //unknown4_unk008
+            //offset 0x20, 0x21, 0x22 and 0x23
+            byte[] unknown4_unk008 = br.ReadBytes(0x4);
+            bin.unknown4_unk008 = unknown4_unk008;
+            text.WriteLine("unknown4_unk008: " + BitConverter.ToString(unknown4_unk008) + "  {hex}");
 
-                text.WriteLine("unknown4 em partes:");
-                stream.Position = unknown4offset;
+            //unknown4_unk009
+            //offset 0x24, 0x25, 0x26 and 0x27
+            byte[] unknown4_unk009 = br.ReadBytes(0x4);
+            bin.unknown4_unk009 = unknown4_unk009;
+            text.WriteLine("unknown4_unk009: " + BitConverter.ToString(unknown4_unk009) + "  {hex}");
 
-                byte[] Pad8Bytes = new byte[8];
-                stream.Read(Pad8Bytes, 0, 8);
-                bin.Pad8Bytes = Pad8Bytes;
-                text.WriteLine("Pad8Bytes: " + BitConverter.ToString(Pad8Bytes) + "  {hex}");
+            //boundbox_addr_
+            //offset 0x2B, 0x2A, 0x29 and 0x28
+            uint boundbox_addr_ = br.ReadUInt32();
+            bin.boundboxPoint = boundbox_addr_;
+            text.WriteLine("boundbox_addr_: 0x" + boundbox_addr_.ToString("X8"));
 
-                //
-                byte[] unknown4_B = new byte[4];
-                stream.Read(unknown4_B, 0, 4);
-                bin.unknown4_B = unknown4_B;
-                text.WriteLine("unknown4_B: " + BitConverter.ToString(unknown4_B) + "  {hex}");
+            //unknown4_unk010
+            //offset 0x2C, 0x2D, 0x2E and 0x2F
+            byte[] unknown4_unk010 = br.ReadBytes(0x4);
+            bin.unknown4_unk010 = unknown4_unk010;
+            text.WriteLine("unknown4_unk010: " + BitConverter.ToString(unknown4_unk010) + "  {hex}");
 
-                //bonepair_addr
-                byte[] bonepair_addr = new byte[4];
-                stream.Read(bonepair_addr, 0, 4);
-                uint bonepair_addr_ = BitConverter.ToUInt32(bonepair_addr, 0);
-                bin.bonepairPoint = bonepair_addr_;
-                text.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
+            text.WriteLine("unk012: XYZ padding");
 
-                byte[] unknown4_unk008 = new byte[4];
-                stream.Read(unknown4_unk008, 0, 4);
-                bin.unknown4_unk008 = unknown4_unk008;
-                text.WriteLine("unknown4_unk008: " + BitConverter.ToString(unknown4_unk008) + "  {hex}"); // --0 ?
+            //unk012_floatX // DrawDistanceNegativeX
+            //offset 0x33, 0x32, 0x31 and 0x30
+            float DrawDistanceNegativeX = br.ReadSingle();
+            bin.DrawDistanceNegativeX = DrawDistanceNegativeX;
+            text.WriteLine("DrawDistanceNegativeX: " + DrawDistanceNegativeX.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                byte[] unknown4_unk009 = new byte[4];
-                stream.Read(unknown4_unk009, 0, 4);
-                bin.unknown4_unk009 = unknown4_unk009;
-                text.WriteLine("unknown4_unk009: " + BitConverter.ToString(unknown4_unk009) + "  {hex}"); // -- flags
+            //unk012_floatY // DrawDistanceNegativeY
+            //offset 0x37, 0x36, 0x35 and 0x34
+            float DrawDistanceNegativeY = br.ReadSingle();
+            bin.DrawDistanceNegativeY = DrawDistanceNegativeY;
+            text.WriteLine("DrawDistanceNegativeY: " + DrawDistanceNegativeY.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                byte[] boundbox_addr = new byte[4];
-                stream.Read(boundbox_addr, 0, 4);
-                uint boundbox_addr_ = BitConverter.ToUInt32(boundbox_addr, 0);
-                bin.boundboxPoint = boundbox_addr_;
-                text.WriteLine("boundbox_addr_: 0x" + boundbox_addr_.ToString("X8"));
+            //unk012_floatZ // DrawDistanceNegativeZ
+            //offset 0x3B, 0x3A, 0x39 and 0x38
+            float DrawDistanceNegativeZ = br.ReadSingle();
+            bin.DrawDistanceNegativeZ = DrawDistanceNegativeZ;
+            text.WriteLine("DrawDistanceNegativeZ: " + DrawDistanceNegativeZ.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                //
-                byte[] unknown4_unk010 = new byte[4];
-                stream.Read(unknown4_unk010, 0, 4);
-                bin.unknown4_unk010 = unknown4_unk010;
-                text.WriteLine("unknown4_unk010: " + BitConverter.ToString(unknown4_unk010) + "  {hex}");
+            //unk012_floatW // DrawDistanceNegativePadding
+            //offset 0x3F, 0x3E, 0x3D and 0x3C
+            float DrawDistanceNegativePadding = br.ReadSingle();
+            bin.DrawDistanceNegativePadding = DrawDistanceNegativePadding;
+            text.WriteLine("DrawDistanceNegativePadding: " + DrawDistanceNegativePadding.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                text.WriteLine("unk012: XYZ padding");
+            text.WriteLine("unk013: XYZ");
 
-                byte[] unk012_floatX = new byte[4];
-                stream.Read(unk012_floatX, 0, 4);
-                float DrawDistanceNegativeX = BitConverter.ToSingle(unk012_floatX, 0);
-                bin.DrawDistanceNegativeX = DrawDistanceNegativeX;
-                text.WriteLine("DrawDistanceNegativeX: " + DrawDistanceNegativeX.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
+            //unk013_floatX // DrawDistancePositiveX
+            //offset 0x43, 0x42, 0x41 and 0x40
+            float DrawDistancePositiveX = br.ReadSingle();
+            bin.DrawDistancePositiveX = DrawDistancePositiveX;
+            text.WriteLine("DrawDistancePositiveX: " + DrawDistancePositiveX.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                byte[] unk012_floatY = new byte[4];
-                stream.Read(unk012_floatY, 0, 4);
-                float DrawDistanceNegativeY = BitConverter.ToSingle(unk012_floatY, 0);
-                bin.DrawDistanceNegativeY = DrawDistanceNegativeY;
-                text.WriteLine("DrawDistanceNegativeY: " + DrawDistanceNegativeY.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
+            //unk013_floatY // DrawDistancePositiveY
+            //offset 0x47, 0x46, 0x45 and 0x44
+            float DrawDistancePositiveY = br.ReadSingle();
+            bin.DrawDistancePositiveY = DrawDistancePositiveY;
+            text.WriteLine("DrawDistancePositiveY: " + DrawDistancePositiveY.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                byte[] unk012_floatZ = new byte[4];
-                stream.Read(unk012_floatZ, 0, 4);
-                float DrawDistanceNegativeZ = BitConverter.ToSingle(unk012_floatZ, 0);
-                bin.DrawDistanceNegativeZ = DrawDistanceNegativeZ;
-                text.WriteLine("DrawDistanceNegativeZ: " + DrawDistanceNegativeZ.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
+            //unk013_floatZ // DrawDistancePositiveZ
+            //offset 0x4B, 0x4A, 0x49 and 0x48
+            float DrawDistancePositiveZ = br.ReadSingle();
+            bin.DrawDistancePositiveZ = DrawDistancePositiveZ;
+            text.WriteLine("DrawDistancePositiveZ: " + DrawDistancePositiveZ.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
 
-                byte[] unk012_floatW = new byte[4];
-                stream.Read(unk012_floatW, 0, 4);
-                float DrawDistanceNegativePadding = BitConverter.ToSingle(unk012_floatW, 0);
-                bin.DrawDistanceNegativePadding = DrawDistanceNegativePadding;
-                text.WriteLine("DrawDistanceNegativePadding: " + DrawDistanceNegativePadding.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
+            //padding
+            //offset 0x4C, 0x4D, 0x4E and 0x4F
+            byte[] Pad4Bytes = br.ReadBytes(0x4);
+            bin.Pad4Bytes = Pad4Bytes;
+            text.WriteLine("Pad4Bytes: " + BitConverter.ToString(Pad4Bytes) + "  {hex}");
 
-                text.WriteLine("unk013: XYZ");
-
-                byte[] unk013_floatX = new byte[4];
-                stream.Read(unk013_floatX, 0, 4);
-                float DrawDistancePositiveX = BitConverter.ToSingle(unk013_floatX, 0);
-                bin.DrawDistancePositiveX = DrawDistancePositiveX;
-                text.WriteLine("DrawDistancePositiveX: " + DrawDistancePositiveX.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
-
-                byte[] unk013_floatY = new byte[4];
-                stream.Read(unk013_floatY, 0, 4);
-                float DrawDistancePositiveY = BitConverter.ToSingle(unk013_floatY, 0);
-                bin.DrawDistancePositiveY = DrawDistancePositiveY;
-                text.WriteLine("DrawDistancePositiveY: " + DrawDistancePositiveY.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
-
-                byte[] unk013_floatZ = new byte[4];
-                stream.Read(unk013_floatZ, 0, 4);
-                float DrawDistancePositiveZ = BitConverter.ToSingle(unk013_floatZ, 0);
-                bin.DrawDistancePositiveZ = DrawDistancePositiveZ;
-                text.WriteLine("DrawDistancePositiveZ: " + DrawDistancePositiveZ.ToString(System.Globalization.CultureInfo.InvariantCulture) + "f");
-
-                //
-                byte[] Pad4Bytes = new byte[4];
-                stream.Read(Pad4Bytes, 0, 4);
-                bin.Pad4Bytes = Pad4Bytes;
-                text.WriteLine("Pad4Bytes: " + BitConverter.ToString(Pad4Bytes) + "  {hex}");
-
-                //binType
-
-                uint U_unknown4_B = BitConverter.ToUInt32(unknown4_B, 0);
-
-                if (U_unknown4_B == 0x20010801)
-                {
-                    uint U_unknown4_unk009 = BitConverter.ToUInt32(unknown4_unk009, 0);
-
-                    if (U_unknown4_unk009 == 0xA0000000 || U_unknown4_unk009 == 0xE0000000)
-                    {
-                        binType = BinType.ScenarioWithColors;
-                    }
-                }
-
-                if (ForceDefaultBinType)
-                {
-                    binType = BinType.Default;
-                }
-
-                bin.binType = binType;
-
-                text.WriteLine("binType: " + Enum.GetName(typeof(BinType), binType));
-
-
-                //bonepair_addr_
-                if (bonepair_addr_ != 0x0)
-                {
-                    stream.Position = bonepair_addr_;
-                    text.WriteLine("");
-                    text.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
-
-                    byte[] bonepairCount_ = new byte[4];
-                    stream.Read(bonepairCount_, 0, 4);
-                    uint bonepairCount = BitConverter.ToUInt32(bonepairCount_, 0);
-                    bin.bonepairCount = bonepairCount;
-                    text.WriteLine("bonepairCount: " + bonepairCount);
-
-                    List<byte[]> bonepairLines = new List<byte[]>();
-                    for (int i = 0; i < bonepairCount; i++)
-                    {
-                        byte[] bonepairLine = new byte[8];
-                        stream.Read(bonepairLine, 0, 8);
-                        text.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(bonepairLine));
-                        bonepairLines.Add(bonepairLine);
-                    }
-                    bin.bonepairLines = bonepairLines.ToArray();
-                }
-
-
-            }// fim da parte referente a "unknown4"
-
+            // fim da parte referente a "unknown4"
             // fim do primeiro header
 
+            if (BitConverter.ToString(Pad8Bytes) != "CD-CD-CD-CD-CD-CD-CD-CD")
+            {
+                text.WriteLine("Invalid bin file, not supported!");
+                text.Close();
+                br.Close();
+                throw new ArgumentException("Invalid bin file, not supported!");
+            }
 
-            //
-            stream.Position = bonesPoint;
+            //---------------------------------------------
+
+            //bonepair_addr_
+            if (bonepair_addr_ != 0x0)
+            {
+                br.BaseStream.Position = bonepair_addr_;
+                text.WriteLine("");
+                text.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
+
+                uint bonepairCount = br.ReadUInt32();
+                bin.bonepairCount = bonepairCount;
+                text.WriteLine("bonepairCount: " + bonepairCount);
+
+                List<byte[]> bonepairLines = new List<byte[]>();
+                for (int i = 0; i < bonepairCount; i++)
+                {
+                    byte[] bonepairLine = br.ReadBytes(0x8);
+                    text.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(bonepairLine));
+                    bonepairLines.Add(bonepairLine);
+                }
+                bin.bonepairLines = bonepairLines.ToArray();
+            }
+
+            //---------------------------------------------
+
+
+            //bonesPoint
+            br.BaseStream.Position = bonesPoint;
             text.WriteLine("");
-            text.WriteLine("bones:   Em hexadecimal");
+            text.WriteLine("bones:   (in hexadecimal)");
 
 
-            Bone[] bones = new Bone[BonesCount[0]];
-            for (int i = 0; i < BonesCount[0]; i++)
+            Bone[] bones = new Bone[BonesCount];
+            for (int i = 0; i < BonesCount; i++)
             {
                 Bone bone = new Bone();
 
-                byte[] boneLine = new byte[16];
-                stream.Read(boneLine, 0, 16);
+                byte[] boneLine = br.ReadBytes(16);
                 text.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(boneLine));
 
                 bone.boneLine = boneLine;
@@ -286,21 +246,24 @@ namespace BINdecoderTest
             }
             bin.bones = bones;
 
-            stream.Position = materialsPoint;
+
+            //---------------------------------------------
+
+            //materialsPoint
+            br.BaseStream.Position = materialsPoint;
 
             text.WriteLine("");
-            text.WriteLine("MaterialList:   Em hexadecimal");
+            text.WriteLine("MaterialList:   (in hexadecimal)");
             
 
-            uint[] NodesTablePointers = new uint[MaterialCount[0]];
+            uint[] NodesTablePointers = new uint[MaterialCount];
 
-            Material[] materials = new Material[MaterialCount[0]];
-            for (int i = 0; i < MaterialCount[0]; i++)
+            Material[] materials = new Material[MaterialCount];
+            for (int i = 0; i < MaterialCount; i++)
             {
                 Material material = new Material();
 
-                byte[] materialLine = new byte[16];
-                stream.Read(materialLine, 0, 16);
+                byte[] materialLine = br.ReadBytes(16);
                 //point to Nodes table
                 uint nodeTablePoint = BitConverter.ToUInt32(materialLine, 12);
                 NodesTablePointers[i] = nodeTablePoint;
@@ -313,13 +276,15 @@ namespace BINdecoderTest
             }
             bin.materials = materials;
 
+            //---------------------------------------------
+
             text.WriteLine("");
             text.WriteLine("---------------");
 
 
             Node[] nodes = new Node[NodesTablePointers.Length];
 
-            int ContagemIndicePraObj = 1;
+            int Index_Count_For_OBJ = 1;
 
             for (int t = 0; t < NodesTablePointers.Length; t++) // t == Node_ID
             {
@@ -327,58 +292,63 @@ namespace BINdecoderTest
                 
                 text.WriteLine("");
 
-                stream.Position = NodesTablePointers[t];
+                br.BaseStream.Position = NodesTablePointers[t];
 
                 text.WriteLine("NodeTablePointer: 0x" + NodesTablePointers[t].ToString("X8"));
 
                 //IDXBINtext
-                List<byte> header = new List<byte>();
+                List<byte> nodeHeader = new List<byte>();
 
                 //NodeHeader
                 //tamanho total dinâmico
-                byte[] NodeHeaderArray = new byte[0x10]; 
-                stream.Read(NodeHeaderArray, 0, 0x10);
-                header.AddRange(NodeHeaderArray);
-                text.WriteLine("NodeHeaderArray: " + BitConverter.ToString(NodeHeaderArray));
-                NodeHeaderArrayText.WriteLine(".[" + t.ToString("D4") +"]: " + BitConverter.ToString(NodeHeaderArray));
 
-                //NodeHeaderArray[0] and NodeHeaderArray[1] = quantide de bytes do inicio do NodeHeaderArray ate o final do SubBoneTableArray
+                //ushot quantidade total de bytes no NodeHeader mais o primeiro segmento
+                ushort TotalBytesAmount = br.ReadUInt16();
+                nodeHeader.AddRange(BitConverter.GetBytes(TotalBytesAmount));
+              
+                //quantidade total de segmentos alem do primeiro
+                byte segmentAmountWithoutFirst = br.ReadByte();
+                int TotalNumberOfSegments = (int)(segmentAmountWithoutFirst) + 1;
+                nodeHeader.Add(segmentAmountWithoutFirst);
+              
+                //quantidade de bones usados no node  
+                byte BonesIdAmount = br.ReadByte();
+                nodeHeader.Add(BonesIdAmount);
+               
 
-                //SplitCount
-                int QuantidadeTotalDeproximosBytes = NodeHeaderArray[0x3];
-                text.WriteLine("QuantidadeTotalDeproximosBytes: " + QuantidadeTotalDeproximosBytes);
-
-                // calculo pra saber quantas partes tem o NodeHeaderArray
-
-                int totalBytesNoNodeHeaderArray = 4 + QuantidadeTotalDeproximosBytes;
-
-                int counterNodeHeaderArrayLenght = 0x10;
-                while (totalBytesNoNodeHeaderArray > counterNodeHeaderArrayLenght)
+                if (BonesIdAmount == 0)
                 {
-                    //continuação do NodeHeaderArray, caso tiver
-                    // cada parte de continuação é 0x10, ao todo
-                    byte[] NodeHeaderArrayContinuation = new byte[0x10];
-                    stream.Read(NodeHeaderArrayContinuation, 0, 0x10);
-                    header.AddRange(NodeHeaderArrayContinuation);
-                    text.WriteLine("NodeHeaderArrayContinuation: " + BitConverter.ToString(NodeHeaderArrayContinuation));
-                    NodeHeaderArrayText.WriteLine("NodeHeaderArrayContinuation: " + BitConverter.ToString(NodeHeaderArrayContinuation));
-                    counterNodeHeaderArrayLenght += 0x10;
+                    binType = BinType.ScenarioWithColors;
                 }
 
+                int calculation = 4 + BonesIdAmount;
+                int parts = calculation / 16;
+                int div = calculation % 16;
+                if (div != 0)
+                {
+                    parts++;
+                }
+                int BoneListAmount = (parts * 16) - 4;
+
+                byte[] NodeBoneList = br.ReadBytes(BoneListAmount);
+                nodeHeader.AddRange(NodeBoneList);
+            
+                node.NodeHeaderArray = nodeHeader.ToArray();
 
 
-                node.NodeHeaderArray = header.ToArray();
-
-
-                int valorTotalDeSegmentos = (int)(NodeHeaderArray[0x2]) + 1;
-
-                text.WriteLine("valorTotalDeSegmentos: " + valorTotalDeSegmentos);
+                text.WriteLine("NodeHeaderArray: " + BitConverter.ToString(nodeHeader.ToArray()));
+                text.WriteLine("TotalBytesAmount: 0x" + TotalBytesAmount.ToString("X4"));
+                text.WriteLine("segmentAmountWithoutFirst: " + segmentAmountWithoutFirst);
+                text.WriteLine("BonesIdAmount: " + BonesIdAmount);
+                text.WriteLine("NodeBoneList: " + BitConverter.ToString(NodeBoneList.Take(BonesIdAmount).ToArray()) + "  {hex}");
+                text.WriteLine("TotalNumberOfSegments: " + TotalNumberOfSegments);
+                text.WriteLine("binType: " + Enum.GetName(typeof(BinType), binType));
 
                 //
-                Segment[] segments = new Segment[valorTotalDeSegmentos];
+                Segment[] segments = new Segment[TotalNumberOfSegments];
 
 
-                for (int i = 0; i < valorTotalDeSegmentos; i++) // SubMesh //Segment
+                for (int i = 0; i < TotalNumberOfSegments; i++) // SubMesh //Segment
                 {
                     Segment segment = new Segment();
 
@@ -386,94 +356,77 @@ namespace BINdecoderTest
 
                     if (binType == BinType.Default) // arquivo bin dentro de .SMD não tem essa parte
                     {
-                        //SubBoneHeader
-                        text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
-                        uint SubBoneHeaderOffset = (uint)stream.Position;
-                        byte[] SubBoneHeader = new byte[0x10]; 
-                        stream.Read(SubBoneHeader, 0, 0x10);
-                        text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] SubBoneHeader: " + BitConverter.ToString(SubBoneHeader));
-                        SubBoneHeaderText.WriteLine(SubBoneHeaderOffset.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "] SubBoneHeader: " + BitConverter.ToString(SubBoneHeader));
+                        //WeightMap
+                        text.WriteLine("stream.Position: 0x" + br.BaseStream.Position.ToString("X8"));
 
-                        segment.SubBoneHeader = SubBoneHeader;
+                        byte[] WeightMapHeader = br.ReadBytes(0x10);
 
-                        // proxima listagem de SubBoneTable
-                        // quantidade de bytes na listagem SubBoneTable
+                        text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] WeightMapHeader: " + BitConverter.ToString(WeightMapHeader));
 
-                        int SubBoneTableAmount = SubBoneHeader[0x0]; // valor adquirido em 0x00 ou 0x0e
-                        int subBoneTableAmountFix = SubBoneTableAmount * 0x10;
+                        segment.WeightMapHeader = WeightMapHeader;
 
+                        // proxima listagem de WeightMapTable
+                        // quantidade de bytes na listagem WeightMapTable
+
+                        int WeightMapTableBytesAmount = WeightMapHeader[0x0] * 0x10; // valor adquirido em 0x00 ou 0x0e
+  
 
                         // tamanho variavel
                        
-                        uint offsetSubBoneTable = (uint)stream.Position;
-                        byte[] SubBoneTableArray = new byte[subBoneTableAmountFix];
-                        stream.Read(SubBoneTableArray, 0, subBoneTableAmountFix);
+                        byte[] WeightMapArray = br.ReadBytes(WeightMapTableBytesAmount);
 
 
-                        int SubBoneTableLinesAmount = subBoneTableAmountFix / 32;
-                        text.WriteLine("subBoneTableAmountFix: 0x" + subBoneTableAmountFix.ToString("X4"));
-                        text.WriteLine("SubBoneTableLinesAmount em float:" + (float)subBoneTableAmountFix / 32);
+                        int WeightMapTableLinesAmount = WeightMapTableBytesAmount / 32;
+                        text.WriteLine("WeightMapTableBytesAmount: 0x" + WeightMapTableBytesAmount.ToString("X4"));
+                        text.WriteLine("WeightMapTableLinesAmount: " + WeightMapTableLinesAmount.ToString());
 
                         text.WriteLine("");
                         int temp = 0;
 
-                        SubBoneTableLine[] SubBoneTableLines = new SubBoneTableLine[SubBoneTableLinesAmount];
+                        WeightMapTableLine[] WeightMapTableLines = new WeightMapTableLine[WeightMapTableLinesAmount];
 
-                        for (int a = 0; a < SubBoneTableLinesAmount; a++)
+                        for (int a = 0; a < WeightMapTableLinesAmount; a++)
                         {
-                            byte[] arr = SubBoneTableArray.Skip(temp).Take(32).ToArray();
+                            byte[] arr = WeightMapArray.Skip(temp).Take(32).ToArray();
 
-                            SubBoneTableLine line = new SubBoneTableLine();
-                            line.subBoneTableLine = arr;
-                            SubBoneTableLines[a] = line;
+                            WeightMapTableLine line = new WeightMapTableLine();
+                            line.weightMapTableLine = arr;
+                            WeightMapTableLines[a] = line;
 
                             temp += 32;
                             text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + a.ToString("D2") + "]: " + BitConverter.ToString(arr));
-                            SubBoneTableText.WriteLine(offsetSubBoneTable.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + a.ToString("D2") + "]: " + BitConverter.ToString(arr));
-                            offsetSubBoneTable += 32;
                         }
 
-                        segment.SubBoneTableLines = SubBoneTableLines;
+                        segment.WeightMapTableLines = WeightMapTableLines;
 
                         text.WriteLine("");
                     }
 
 
-                    uint offsetTopHeader = (uint)stream.Position;
-                    text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
+                    text.WriteLine("stream.Position: 0x" + br.BaseStream.Position.ToString("X8"));
                     //TopTagVifHeader // header que define a quantidade de dados do grupo de vertices abaixo.
                     // fixo 0x30
-                    byte[] TopTagVifHeader = new byte[0x30];
-                    stream.Read(TopTagVifHeader, 0, 0x30);
+                    byte[] TopTagVifHeader = br.ReadBytes(0x30);
                     text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] TopTagVifHeader: " + BitConverter.ToString(TopTagVifHeader));
-                    TopTagVifHeaderText.WriteLine(offsetTopHeader.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "] TopTagVifHeader: " + BitConverter.ToString(TopTagVifHeader));
 
-                    float Scale = BitConverter.ToSingle(TopTagVifHeader, 0x1C);
+                    float ConversionFactorValue = BitConverter.ToSingle(TopTagVifHeader, 0x1C);
 
                     segment.TopTagVifHeader = TopTagVifHeader;
-                    segment.Scale = Scale;
+                    segment.ConversionFactorValue = ConversionFactorValue;
 
 
-                    int chunkByteAmount = TopTagVifHeader[0x20];
+                    int chunkByteAmount = TopTagVifHeader[0x20] * 0x10;
+                    text.WriteLine("chunkByteAmount: 0x" + chunkByteAmount.ToString("X4"));
 
-                    int chunkByteAmountFix = chunkByteAmount * 0x10;
+                    uint Line_Offset_Calculation = (uint)br.BaseStream.Position;
 
-                    byte[] subMeshChunk = new byte[chunkByteAmountFix];
-
-                    text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
-                    uint CalculoOffsetLinha = (uint)stream.Position;
-                    stream.Read(subMeshChunk, 0, chunkByteAmountFix);
-
-                    text.WriteLine("chunkByteAmount: 0x" + chunkByteAmount.ToString("X2"));
-                    text.WriteLine("chunkByteAmountFix: 0x" + chunkByteAmountFix.ToString("X4"));
+                    byte[] subMeshChunk = br.ReadBytes(chunkByteAmount);
 
 
-                    int LineAmount = chunkByteAmountFix / 24; // nota: tem um valor em "TopTagVifHeader" que representa a guantidade de LineAmount //TopTagVifHeader[0x10]
+                    int LineAmount = chunkByteAmount / 24; // nota: tem um valor em "TopTagVifHeader" que representa a guantidade de LineAmount //TopTagVifHeader[0x10]
 
-                    text.WriteLine("LineAmount em decimal: " + LineAmount);
-                    text.WriteLine("LineAmount resposta em float: " + (float)chunkByteAmountFix / 24);
-
-                    text.WriteLine("Scale em float: " + Scale.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    text.WriteLine("LineAmount in decimal: " + LineAmount);
+                    text.WriteLine("ConversionFactorValue: " + ConversionFactorValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
 
                     VertexLine[] array = new VertexLine[LineAmount];
@@ -483,11 +436,11 @@ namespace BINdecoderTest
 
                     if (binType == BinType.ScenarioWithColors)
                     {
-                        text.WriteLine("Offset em hexadecimal: [MaterialCount][valorTotalDePartes][linha]: VerticeX, VerticeY, VerticeZ, IndexMount, TextureU, TextureV, UnknownA, IndexComplement, NormalX, NormalY, NormalZ, UnknownB");
+                        text.WriteLine("Offset in hexadecimal: [MaterialCount][valorTotalDePartes][linha]: VerticeX, VerticeY, VerticeZ, IndexMount, TextureU, TextureV, UnknownA, IndexComplement, ColorR, ColorG, ColorB, UnknownB");
                     }
                     else 
                     {
-                        text.WriteLine("Offset em hexadecimal: [MaterialCount][valorTotalDePartes][linha]: VerticeX, VerticeY, VerticeZ, UnknownB, NormalX, NormalY, NormalZ, IndexComplement, TextureU, TextureV, UnknownA, IndexMount");
+                        text.WriteLine("Offset in hexadecimal: [MaterialCount][valorTotalDePartes][linha]: VerticeX, VerticeY, VerticeZ, UnknownB, NormalX, NormalY, NormalZ, IndexComplement, TextureU, TextureV, UnknownA, IndexMount");
                     }
                     
 
@@ -519,7 +472,7 @@ namespace BINdecoderTest
 
                             v.UnknownB = BitConverter.ToUInt16(line, 22);
 
-                            text.WriteLine(CalculoOffsetLinha.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
+                            text.WriteLine(Line_Offset_Calculation.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
                                "  vX: " + v.VerticeX.ToString().PadLeft(6) +
                                "  vY: " + v.VerticeY.ToString().PadLeft(6) +
                                "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
@@ -528,26 +481,12 @@ namespace BINdecoderTest
                                "  tV: " + v.TextureV.ToString().PadLeft(6) +
                                "  UnkA: " + v.UnknownA.ToString("X4") +
                                "  IdxComp: " + v.IndexComplement.ToString("X4") +
-                               "  nX: " + v.NormalX.ToString().PadLeft(6) +
-                               "  nY: " + v.NormalY.ToString().PadLeft(6) +
-                               "  nZ: " + v.NormalZ.ToString().PadLeft(6) +
+                               "  cR: " + v.NormalX.ToString().PadLeft(6) +
+                               "  cG: " + v.NormalY.ToString().PadLeft(6) +
+                               "  cB: " + v.NormalZ.ToString().PadLeft(6) +
                                "  UnkB: " + v.UnknownB.ToString("X4")
                               );
 
-                            VerticesText.WriteLine(CalculoOffsetLinha.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "][" + ContagemIndicePraObj.ToString("D4") + "]:" +
-                               "  vX: " + v.VerticeX.ToString().PadLeft(6) +
-                               "  vY: " + v.VerticeY.ToString().PadLeft(6) +
-                               "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
-                               "  IndexMount: " + v.IndexMount.ToString("X4") +
-                               "  tU: " + v.TextureU.ToString().PadLeft(6) +
-                               "  tV: " + v.TextureV.ToString().PadLeft(6) +
-                               "  UnkA: " + v.UnknownA.ToString("X4") +
-                               "  IdxComp: " + v.IndexComplement.ToString("X4") +
-                               "  nX: " + v.NormalX.ToString().PadLeft(6) +
-                               "  nY: " + v.NormalY.ToString().PadLeft(6) +
-                               "  nZ: " + v.NormalZ.ToString().PadLeft(6) +
-                               "  UnkB: " + v.UnknownB.ToString("X4")
-                              );
 
                         }
                         else
@@ -570,7 +509,7 @@ namespace BINdecoderTest
                             v.UnknownA = BitConverter.ToUInt16(line, 20);
                             v.IndexMount = BitConverter.ToUInt16(line, 22);
 
-                            text.WriteLine(CalculoOffsetLinha.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
+                            text.WriteLine(Line_Offset_Calculation.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
                                 "  vX: " + v.VerticeX.ToString().PadLeft(6) +
                                 "  vY: " + v.VerticeY.ToString().PadLeft(6) +
                                 "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
@@ -584,23 +523,10 @@ namespace BINdecoderTest
                                 "  UnkA: " + v.UnknownA.ToString("X4") +
                                 "  IndexMount: " + v.IndexMount.ToString("X4"));
 
-                            VerticesText.WriteLine(CalculoOffsetLinha.ToString("X8") + ": [" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "][" + ContagemIndicePraObj.ToString("D4") + "]:" +
-                                "  vX: " + v.VerticeX.ToString().PadLeft(6) +
-                                "  vY: " + v.VerticeY.ToString().PadLeft(6) +
-                                "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
-                                "  UnkB: " + v.UnknownB.ToString("X4") +
-                                "  nX: " + v.NormalX.ToString().PadLeft(6) +
-                                "  nY: " + v.NormalY.ToString().PadLeft(6) +
-                                "  nZ: " + v.NormalZ.ToString().PadLeft(6) +
-                                "  IdxComp: " + v.IndexComplement.ToString("X4") +
-                                "  tU: " + v.TextureU.ToString().PadLeft(6) +
-                                "  tV: " + v.TextureV.ToString().PadLeft(6) +
-                                "  UnkA: " + v.UnknownA.ToString("X4") +
-                                "  IndexMount: " + v.IndexMount.ToString("X4"));
                         }
 
-                        ContagemIndicePraObj++;
-                        CalculoOffsetLinha += 24;
+                        Index_Count_For_OBJ++;
+                        Line_Offset_Calculation += 24;
                         tempOffset += 24;
                         array[l] = v;
                     }
@@ -611,11 +537,9 @@ namespace BINdecoderTest
                     {
                         // fixo 0x10
                         // EndCommand bytes = 00-00-00-XX-00-00-00-00-00-00-00-00-00-00-00-17
-                        text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
-                        byte[] EndTagVifCommand = new byte[0x10];
-                        stream.Read(EndTagVifCommand, 0, 0x10);
+                        text.WriteLine("stream.Position: 0x" + br.BaseStream.Position.ToString("X8"));
+                        byte[] EndTagVifCommand = br.ReadBytes(0x10);
                         text.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] EndTagVifCommand: " + BitConverter.ToString(EndTagVifCommand));
-                        EndTagVifCommandText.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] EndTagVifCommand: " + BitConverter.ToString(EndTagVifCommand));
                         text.WriteLine("");
                     }
 
@@ -628,28 +552,24 @@ namespace BINdecoderTest
 
             bin.Nodes = nodes;
 
+            bin.binType = binType;
+
+
             // end file
 
-            if (stream.Position < stream.Length) // no caso, não deve ter mais bytes
+            if (br.BaseStream.Position < br.BaseStream.Length) // no caso, não deve ter mais bytes
             {
                 text.WriteLine("");
-                text.WriteLine("stream.Position: 0x" + stream.Position.ToString("X8"));
-                text.WriteLine("Bytes no final do arquivo");
-                int lenght = (int)(stream.Length - stream.Position);
+                text.WriteLine("stream.Position: 0x" + br.BaseStream.Position.ToString("X8"));
+                text.WriteLine("Bytes at end of file");
+                int lenght = (int)(br.BaseStream.Length - br.BaseStream.Position);
                 byte[] end = new byte[lenght];
-                stream.Read(end, 0, lenght);
+                br.BaseStream.Read(end, 0, lenght);
                 text.WriteLine("EndFile: " + BitConverter.ToString(end));
             }
 
-
-            VerticesText.Close();
-            SubBoneTableText.Close();
-            SubBoneHeaderText.Close();
-            TopTagVifHeaderText.Close();
-            NodeHeaderArrayText.Close();
-            EndTagVifCommandText.Close();
             text.Close();
-            stream.Close();
+            br.Close();
 
             return bin;
         }
@@ -698,16 +618,16 @@ namespace BINdecoderTest
                 {
                     List<string> Weights = new List<string>();
 
-                    if (bin.Nodes[t].Segments[i].SubBoneTableLines != null)
+                    if (bin.Nodes[t].Segments[i].WeightMapTableLines != null)
                     {
-                        for (int l = 0; l < bin.Nodes[t].Segments[i].SubBoneTableLines.Length; l++)
+                        for (int l = 0; l < bin.Nodes[t].Segments[i].WeightMapTableLines.Length; l++)
                         {
-                            int Amount = bin.Nodes[t].Segments[i].SubBoneTableLines[l].Amount;
+                            int Amount = bin.Nodes[t].Segments[i].WeightMapTableLines[l].Amount;
                             string res = Amount.ToString();
 
                             if (Amount > 0)
                             {
-                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId1 / 4);
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].WeightMapTableLines[l].boneId1 / 4);
                                 uint UseBone = 0;
                                 if (UseId < useBoneList.Length)
                                 {
@@ -715,12 +635,12 @@ namespace BINdecoderTest
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight1.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight1.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
                             }
 
                             if (Amount > 1)
                             {
-                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId2 / 4);
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].WeightMapTableLines[l].boneId2 / 4);
                                 uint UseBone = 0;
                                 if (UseId < useBoneList.Length)
                                 {
@@ -728,12 +648,12 @@ namespace BINdecoderTest
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight2.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight2.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
                             }
 
                             if (Amount > 2)
                             {
-                                uint UseId = (uint)(bin.Nodes[t].Segments[i].SubBoneTableLines[l].boneId3 / 4);
+                                uint UseId = (uint)(bin.Nodes[t].Segments[i].WeightMapTableLines[l].boneId3 / 4);
                                 uint UseBone = 0;
                                 if (UseId < useBoneList.Length)
                                 {
@@ -741,7 +661,7 @@ namespace BINdecoderTest
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].SubBoneTableLines[l].weight3.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight3.ToString("f9", System.Globalization.CultureInfo.InvariantCulture);
                             }
                             Weights.Add(res);
                         }
@@ -770,9 +690,9 @@ namespace BINdecoderTest
                             {
                                 VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[contagem - l];
 
-                                pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                          ((float)vertexLine.VerticeZ * -1f * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                                          ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                                pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                          ((float)vertexLine.VerticeZ * -1f * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                                          ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
 
                                 uvs[l] = (((float)vertexLine.TextureU / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
                                           ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
@@ -895,9 +815,9 @@ namespace BINdecoderTest
                     {
                         VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[l];
 
-                        text.WriteLine("v " + ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
-                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].Scale / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
+                        text.WriteLine("v " + ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
+                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].ConversionFactorValue / GLOBAL_SCALE).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
 
                         text.WriteLine("vt " + ((float)vertexLine.TextureU / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
                         ((float)vertexLine.TextureV / 255f).ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
@@ -1019,7 +939,7 @@ namespace BINdecoderTest
                 float temp = 0;
                 for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
                 {
-                    temp += bin.Nodes[t].Segments[i].Scale;
+                    temp += bin.Nodes[t].Segments[i].ConversionFactorValue;
                 }
                 tempConversionFactor += temp / bin.Nodes[t].Segments.Length;
             }
@@ -1109,6 +1029,7 @@ namespace BINdecoderTest
             IDXBINtext.Close();
         }
 
+        //debug
         public static void CreateDrawDistanceBoxObj(BIN bin, string baseDiretory, string baseFileName)
         {
             //
@@ -1197,6 +1118,7 @@ namespace BINdecoderTest
             text.Close();
         }
 
+        //debug
         public static void CreateScaleLimitBoxObj(BIN bin, string baseDiretory, string baseFileName)
         {
 
@@ -1219,7 +1141,7 @@ namespace BINdecoderTest
                 float allScales = 0;
                 for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
                 {
-                    allScales += bin.Nodes[t].Segments[i].Scale;
+                    allScales += bin.Nodes[t].Segments[i].ConversionFactorValue;
                 }
 
                 scalenodes += allScales / bin.Nodes[t].Segments.Length;
@@ -1232,7 +1154,6 @@ namespace BINdecoderTest
             text.WriteLine("# scale: " + scale.ToString("f9", System.Globalization.CultureInfo.InvariantCulture));
             text.WriteLine("");
 
-            //float shorterDistance = scale * 1;
 
             //1
             text.WriteLine("v " + minPos.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + " " +
@@ -1329,6 +1250,7 @@ namespace BINdecoderTest
             text.Close();
 
         }
+
     }
 
     #region representação do bin
@@ -1360,8 +1282,6 @@ namespace BINdecoderTest
         public uint materialsPoint;
 
         //unknown4 start
-        //compatibilidade
-        public byte[] unknown4;
 
         //new byte[8];
         public byte[] Pad8Bytes; //CD-CD-CD-CD-CD-CD-CD-CD
@@ -1451,17 +1371,17 @@ namespace BINdecoderTest
     public class Segment
     {
         //new byte[0x10];
-        public byte[] SubBoneHeader;
+        public byte[] WeightMapHeader;
 
         //[quantidade de linhas][0x20]
         //public byte[][] SubBoneTableLines;
-        public SubBoneTableLine[] SubBoneTableLines;
+        public WeightMapTableLine[] WeightMapTableLines;
 
         //--
         //TopTagVifHeader
         //new byte[0x30];
         public byte[] TopTagVifHeader;
-        public float Scale;
+        public float ConversionFactorValue;
         //--
 
         //vertexLines
@@ -1472,17 +1392,17 @@ namespace BINdecoderTest
         public byte[] EndTagVifCommand;
     }
 
-    public class SubBoneTableLine 
+    public class WeightMapTableLine 
     {
-        public byte[] subBoneTableLine;
+        public byte[] weightMapTableLine;
 
-        public uint boneId1 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x0); } }
-        public uint boneId2 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x4); } }
-        public uint boneId3 { get { return BitConverter.ToUInt32(subBoneTableLine, 0x8); } }
-        public int Amount { get { return BitConverter.ToInt32(subBoneTableLine, 0xC); } }
-        public float weight1 { get { return BitConverter.ToSingle(subBoneTableLine, 0x10); } }
-        public float weight2 { get { return BitConverter.ToSingle(subBoneTableLine, 0x14); } }
-        public float weight3 { get { return BitConverter.ToSingle(subBoneTableLine, 0x18); } }
+        public uint boneId1 { get { return BitConverter.ToUInt32(weightMapTableLine, 0x0); } }
+        public uint boneId2 { get { return BitConverter.ToUInt32(weightMapTableLine, 0x4); } }
+        public uint boneId3 { get { return BitConverter.ToUInt32(weightMapTableLine, 0x8); } }
+        public int Amount { get { return BitConverter.ToInt32(weightMapTableLine, 0xC); } }
+        public float weight1 { get { return BitConverter.ToSingle(weightMapTableLine, 0x10); } }
+        public float weight2 { get { return BitConverter.ToSingle(weightMapTableLine, 0x14); } }
+        public float weight3 { get { return BitConverter.ToSingle(weightMapTableLine, 0x18); } }
     }
 
 

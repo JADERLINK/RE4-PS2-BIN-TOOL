@@ -23,22 +23,21 @@ namespace BINrepackTest
         public FinalSegment[] Segments { get; set; }
     }
 
-
     public class FinalSegment
     {
-        public List<FinalWeightMap> SubBoneTable { get; set; }    
-        public List<FinalVertex> Vertices { get; set; }
+        public List<FinalWeightMap> WeightMapList { get; set; }    
+        public List<FinalVertex> VertexList { get; set; }
 
 
-        public FinalSegment() 
+        public FinalSegment()
         {
-            SubBoneTable = new List<FinalWeightMap>();
-            Vertices = new List<FinalVertex>();
+            WeightMapList = new List<FinalWeightMap>();
+            VertexList = new List<FinalVertex>();
         }
 
     }
 
-    public class FinalWeightMap
+    public struct FinalWeightMap
     {
         public int links { get; set; }
         
@@ -61,19 +60,27 @@ namespace BINrepackTest
                 && map.BoneID3 == BoneID3 
                 && map.Weight1 == Weight1
                 && map.Weight2 == Weight2
-                && map.Weight3 == Weight3
-                ;
+                && map.Weight3 == Weight3;
         }
         public override int GetHashCode()
         {
-            return (links + ";" + BoneID1 + ";" + Weight1 + ";" + BoneID2 + ";" + Weight2 + ";" + BoneID3 + ";" + Weight3).GetHashCode();
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + links.GetHashCode();
+                hash = hash * 23 + BoneID1.GetHashCode();
+                hash = hash * 23 + Weight1.GetHashCode();
+                hash = hash * 23 + BoneID2.GetHashCode();
+                hash = hash * 23 + Weight2.GetHashCode();
+                hash = hash * 23 + BoneID3.GetHashCode();
+                hash = hash * 23 + Weight3.GetHashCode();
+                return hash;
+            }
         }
-
 
     }
 
-
-    public class FinalVertex
+    public struct FinalVertex
     {
         public short PosX { get; set; }
         public short PosY { get; set; }
@@ -91,7 +98,7 @@ namespace BINrepackTest
         public short ColorB { get; set; }
         public short ColorA { get; set; }
 
-        public ushort BoneReference { get; set; }
+        public ushort WeightMapReference { get; set; }
         public ushort IndexComplement { get; set; }
         public ushort IndexMount { get; set; }
 
