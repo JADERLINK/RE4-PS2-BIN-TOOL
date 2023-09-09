@@ -7,10 +7,16 @@ Esse é o código resultado a partir das pesquisas sobre os arquivos .bin do re4
 Encontra-se em estágio de desenvolvimento, mas já pode ser usado para criar novos .bin para os cenários e os itens, e agora com suporte para peso por bone, pode criar personagens personalizados e armas com animações.
 
 ----
+<br>**Update: beta.1.3.0.1**
+
+Leia a baixo para entender sobre o bug corrigido, que em resumo, agora a criação dos bins não mais apresentarão artefatos;
+<br>Corrigido bug no BINrepack: na criação de bin com modelos com muita variedade de valores de pesos de vértice, estava criando artefatos nos modelos (linhas que saiam do modelo e iam em direção ao topo esquerdo da tela), explicação: para cada malha (conjunto de face) de cada material é divido por "segments" que é composto posto por um bloco de dados das vértices (que tem um limite de 44 vértices por "segment") e por um bloco composto pelos pesos das vértices, e antes não estava considerando um limite de tamanho, que o que estava ocasionado o bug pois poderia acontecer de ultrapassar esse limite e ocasionar esses artefatos, agora foi corrigido e imposto um limite (de 15 conjuntos de pesos por segment), então não deve mais ter esses artefatos.
+
+
 <br>**Update: beta.1.3.0.0**
 
 Agora o programa deixou de ser alfa e virou beta, e os programas foram renomeados.
-<br> é recomendado usar essa versão do programa e vez das anteriores.
+<br> é recomendado usar essa versão do programa e vez das anteriores. (use a beta.1.3.0.1)
 
 * Adicionado um novo método de compressão de vértices (Triangle Strip), para SMD e OBJ, agora os arquivos .BIN gerados serão menores que as versões anteriores.
 * Para o programa do "Decoder", agora será necessário usar somente um arquivo .bat, pois ele ira reconhecer automaticamente o tipo de bin, e caso o arquivo seja incompatível com o programa, ele vai mostrar um aviso.
@@ -19,7 +25,7 @@ Agora o programa deixou de ser alfa e virou beta, e os programas foram renomeado
 
 <br>**Update: alfa.1.2.0.0**
 
-Nota: use a versão beta.1.3.0.0.
+Nota: use a versão beta.1.3.0.1.
 <br>Agora temos suporte ao modelo 3d SMD (StudioModel Data), com suporte aos bones e pintura de peso por vértice. <del> Porem os arquivos bin gerados pelo smd sera maior que os gerados pelos obj, pois esse formato ainda não foi feito o suporte a compressão de vértices (Triangle Strip), no qual se encontra em desenvolvimento.</del>
 
 **Aviso de compatiblidade dos arquivos entre as versões:**
@@ -32,7 +38,7 @@ Nota: use a versão beta.1.3.0.0.
 
 - arquivo .SMD: use o arquivo gerado a partir da versão alfa.1.2.0.0, não use o arquivo smd gerado na versão alfa.1.0.0.3 pois esta errado. (a orientação das faces estava invertidas).
 
-- arquivo .MTL: é usado para carregar as texturas do modelo nos editores 3d (ex: Blender), não é usado pelo "BINrepackTest", então ele não faz diferença.
+- arquivo .MTL: é usado para carregar as texturas do modelo nos editores 3d (ex: Blender), não é usado pelo "Re4Ps2BINrepack", então ele não faz diferença.
 
 - arquivo .TXT2: são arquivos informacionais, você pode ignora-los.
 

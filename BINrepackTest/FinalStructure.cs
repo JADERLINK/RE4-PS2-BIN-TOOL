@@ -37,9 +37,9 @@ namespace BINrepackTest
 
     }
 
-    public struct FinalWeightMap
+    public struct FinalWeightMap : IEquatable<FinalWeightMap>
     {
-        public int links { get; set; }
+        public int Links { get; set; }
         
         public int BoneID1 { get; set; }
         public float Weight1 { get; set; }
@@ -54,7 +54,7 @@ namespace BINrepackTest
         public override bool Equals(object obj)
         {
             return obj is FinalWeightMap map 
-                && map.links == links 
+                && map.Links == Links 
                 && map.BoneID1 == BoneID1 
                 && map.BoneID2 == BoneID2 
                 && map.BoneID3 == BoneID3 
@@ -62,12 +62,24 @@ namespace BINrepackTest
                 && map.Weight2 == Weight2
                 && map.Weight3 == Weight3;
         }
+
+        public bool Equals(FinalWeightMap other)
+        {
+            return other.Links == Links
+                && other.BoneID1 == BoneID1
+                && other.BoneID2 == BoneID2
+                && other.BoneID3 == BoneID3
+                && other.Weight1 == Weight1
+                && other.Weight2 == Weight2
+                && other.Weight3 == Weight3;
+        }
+
         public override int GetHashCode()
         {
             unchecked
             {
                 int hash = 17;
-                hash = hash * 23 + links.GetHashCode();
+                hash = hash * 23 + Links.GetHashCode();
                 hash = hash * 23 + BoneID1.GetHashCode();
                 hash = hash * 23 + Weight1.GetHashCode();
                 hash = hash * 23 + BoneID2.GetHashCode();

@@ -165,6 +165,33 @@ namespace BINrepackTest
             return false;
         }
 
+        private bool CheckWeightMapCount(List<StartWeightMap> weightMapTemp, StartVertex vertex) 
+        {
+            var temp = new List<StartWeightMap>();
+            temp.AddRange(weightMapTemp);
+
+            if (!temp.Contains(vertex.WeightMap))
+            {
+                temp.Add(vertex.WeightMap);
+            }
+
+            if (temp.Count <= 15)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void weightMapTempAdd(ref List<StartWeightMap> weightMapTemp, StartVertex vertex) 
+        {
+            if (!weightMapTemp.Contains(vertex.WeightMap))
+            {
+                weightMapTemp.Add(vertex.WeightMap);
+            } 
+        }
+
+
         private bool As1PositionEqualHashCode(StartTriangle toCompare, StartTriangle obj) 
         {
             return     toCompare.A.Position.GetHashCode() == obj.A.Position.GetHashCode()
@@ -272,7 +299,9 @@ namespace BINrepackTest
 
             if (triangles.Count > 0)
             {
-                List<StartVertex> temp = new List<StartVertex>();
+                List<StartVertex> vtemp = new List<StartVertex>();
+
+                List<StartWeightMap> weightMapTemp = new List<StartWeightMap>();
 
                 StartTriangle last = triangles[0];
                 (int r1, int r2, int r3) lastOrder = (1, 2, 3);
@@ -314,10 +343,16 @@ namespace BINrepackTest
 
                             if (checkFirt)
                             {
-                                temp.Add(last[Order1oldlast.r1]);
-                                temp.Add(last[Order1oldlast.r2]);
-                                temp.Add(last[Order1oldlast.r3]);
-                                temp.Add(cont[i][Order2next.r3]);
+                                vtemp.Add(last[Order1oldlast.r1]);
+                                vtemp.Add(last[Order1oldlast.r2]);
+                                vtemp.Add(last[Order1oldlast.r3]);
+                                vtemp.Add(cont[i][Order2next.r3]);
+
+                                //weightMapTempAdd
+                                weightMapTempAdd(ref weightMapTemp, last[Order1oldlast.r1]);
+                                weightMapTempAdd(ref weightMapTemp, last[Order1oldlast.r2]);
+                                weightMapTempAdd(ref weightMapTemp, last[Order1oldlast.r3]);
+                                weightMapTempAdd(ref weightMapTemp, cont[i][Order2next.r3]);
 
                                 last = cont[i];
                                 lastOrder = Order2next;
@@ -335,9 +370,13 @@ namespace BINrepackTest
                         {
                             bool checkNotFirt = CheckOrder(last, cont[i], lastOrder, nextOrder, out Order2next);
 
-                            if (checkNotFirt)
+                            if (checkNotFirt && CheckWeightMapCount(weightMapTemp, cont[i][Order2next.r3]))
                             {
-                                temp.Add(cont[i][Order2next.r3]);
+                                vtemp.Add(cont[i][Order2next.r3]);
+
+                                //weightMapTempAdd
+                                weightMapTempAdd(ref weightMapTemp, cont[i][Order2next.r3]);
+
 
                                 last = cont[i];
                                 lastOrder = Order2next;
@@ -368,12 +407,13 @@ namespace BINrepackTest
                     {
                         if (isFirt)
                         {
-                            temp.Add(last.A);
-                            temp.Add(last.B);
-                            temp.Add(last.C);
+                            vtemp.Add(last.A);
+                            vtemp.Add(last.B);
+                            vtemp.Add(last.C);
 
-                            newFaces.Add(temp);
-                            temp = new List<StartVertex>();
+                            newFaces.Add(vtemp);
+                            vtemp = new List<StartVertex>();
+                            weightMapTemp.Clear();
                             last = triangles[0];
                             lastOrder = (1, 2, 3);
                             triangles.RemoveAt(0);
@@ -385,8 +425,9 @@ namespace BINrepackTest
                         }
                         else
                         {
-                            newFaces.Add(temp);
-                            temp = new List<StartVertex>();
+                            newFaces.Add(vtemp);
+                            vtemp = new List<StartVertex>();
+                            weightMapTemp.Clear();
                             last = triangles[0];
                             lastOrder = (1, 2, 3);
                             triangles.RemoveAt(0);
@@ -397,10 +438,11 @@ namespace BINrepackTest
                             continue;
                         }
                     }
-                    else if (temp.Count >= 40)
+                    else if (vtemp.Count >= 40)
                     {
-                        newFaces.Add(temp);
-                        temp = new List<StartVertex>();
+                        newFaces.Add(vtemp);
+                        vtemp = new List<StartVertex>();
+                        weightMapTemp.Clear();
                         last = triangles[0];
                         lastOrder = (1, 2, 3);
                         triangles.RemoveAt(0);
@@ -419,15 +461,15 @@ namespace BINrepackTest
                 // ultima seção
                 if (isFirt)
                 {
-                    temp.Add(last.A);
-                    temp.Add(last.B);
-                    temp.Add(last.C);
+                    vtemp.Add(last.A);
+                    vtemp.Add(last.B);
+                    vtemp.Add(last.C);
 
-                    newFaces.Add(temp);
+                    newFaces.Add(vtemp);
                 }
                 else
                 {
-                    newFaces.Add(temp);
+                    newFaces.Add(vtemp);
                 }
 
 
@@ -444,15 +486,13 @@ namespace BINrepackTest
     /// <summary>
     /// Representação de um Vector3, usado para Position/Normal
     /// </summary>
-    public class Vector3
+    public class Vector3 : IEquatable<Vector3>
     {
         public float X { get; private set; }
         public float Y { get; private set; }
         public float Z { get; private set; }
 
         private int hashCode;
-
-        public Vector3() { }
 
         public Vector3(float x, float y, float z)
         {
@@ -461,9 +501,12 @@ namespace BINrepackTest
             Z = z;
             unchecked
             {
-                hashCode = (X.GetHashCode() * 23 + Y.GetHashCode() * 23 + Z.GetHashCode() * 23).GetHashCode();
+                hashCode = 17;
+                hashCode = hashCode * 23 + X.GetHashCode();
+                hashCode = hashCode * 23 + Y.GetHashCode();
+                hashCode = hashCode * 23 + Z.GetHashCode();
             }
-        }    
+        }
 
 
         public static bool operator ==(Vector3 lhs, Vector3 rhs) => lhs.Equals(rhs);
@@ -483,9 +526,6 @@ namespace BINrepackTest
         public override int GetHashCode()
         {
             return hashCode;
-            //return (X.GetHashCode() + Y.GetHashCode() + Z.GetHashCode()).GetHashCode();
-            //return (X + "_" + Y + "_" + Z).GetHashCode();
-            //return (X + Y + Z).GetHashCode();
         }
     }
 
@@ -493,17 +533,23 @@ namespace BINrepackTest
     /// <summary>
     /// Representação de um Vector2, usado para TextureUV
     /// </summary>
-    public class Vector2
+    public class Vector2 : IEquatable<Vector2>
     {
-        public float U;
-        public float V;
+        public float U { get; private set; }
+        public float V { get; private set; }
 
-        public Vector2() { }
+        private int hashCode;
 
         public Vector2(float u, float v)
         {
             U = u;
             V = v;
+            unchecked
+            {
+                hashCode = 17;
+                hashCode = hashCode * 23 + U.GetHashCode();
+                hashCode = hashCode * 23 + V.GetHashCode();
+            }
         }
 
         public static bool operator ==(Vector2 lhs, Vector2 rhs) => lhs.Equals(rhs);
@@ -522,12 +568,7 @@ namespace BINrepackTest
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return (U.GetHashCode() + V.GetHashCode()).GetHashCode();
-                //return (U + "_" + V).GetHashCode();
-                //return (U + V).GetHashCode();
-            }
+            return hashCode;
         }
     }
 
@@ -535,14 +576,14 @@ namespace BINrepackTest
     /// <summary>
     /// Representação de um Vector4, usado para Colors
     /// </summary>
-    public class Vector4
+    public class Vector4 : IEquatable<Vector4>
     {
-        public float R;
-        public float G;
-        public float B;
-        public float A;
+        public float R { get; private set; }
+        public float G { get; private set; }
+        public float B { get; private set; }
+        public float A { get; private set; }
 
-        public Vector4() { }
+        private int hashCode;
 
         public Vector4(float r, float g, float b, float a)
         {
@@ -550,6 +591,14 @@ namespace BINrepackTest
             G = g;
             B = b;
             A = a;
+            unchecked
+            {
+                hashCode = 17;
+                hashCode = hashCode * 23 + R.GetHashCode();
+                hashCode = hashCode * 23 + G.GetHashCode();
+                hashCode = hashCode * 23 + B.GetHashCode();
+                hashCode = hashCode * 23 + A.GetHashCode();
+            }
         }
 
         public static bool operator ==(Vector4 lhs, Vector4 rhs) => lhs.Equals(rhs);
@@ -568,12 +617,7 @@ namespace BINrepackTest
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return (R.GetHashCode() + G.GetHashCode() + B.GetHashCode() + A.GetHashCode()).GetHashCode();
-                //return (R +"_" + G + "_" + B + "_" + A).GetHashCode();
-                //return (R + G + B + A).GetHashCode();
-            }
+            return hashCode;
         }
 
     }
@@ -582,7 +626,7 @@ namespace BINrepackTest
     /// <summary>
     /// Representa o conjunto de pesos associado a um vértice;
     /// </summary>
-    public class StartWeightMap
+    public class StartWeightMap : IEquatable<StartWeightMap>
     {
         public int Links { get; set; }
 
@@ -638,9 +682,15 @@ namespace BINrepackTest
         {
             unchecked
             {
-                return (Links.GetHashCode() + BoneID1.GetHashCode() + Weight1.GetHashCode() + BoneID2.GetHashCode() + Weight2.GetHashCode() + BoneID3.GetHashCode() + Weight3.GetHashCode()).GetHashCode();
-                //return (Links + "_" + BoneID1 + "_" + Weight1 + "_" + BoneID2 + "_" + Weight2 + "_" + BoneID3 + "_" + Weight3).GetHashCode();
-                //return (Links + BoneID1 + Weight1 + BoneID2 + Weight2 + BoneID3 +Weight3).GetHashCode();
+                int hash = 17;
+                hash = hash * 23 + Links.GetHashCode();
+                hash = hash * 23 + BoneID1.GetHashCode();
+                hash = hash * 23 + Weight1.GetHashCode();
+                hash = hash * 23 + BoneID2.GetHashCode();
+                hash = hash * 23 + Weight2.GetHashCode();
+                hash = hash * 23 + BoneID3.GetHashCode();
+                hash = hash * 23 + Weight3.GetHashCode();
+                return hash;
             }
         }
 

@@ -77,9 +77,9 @@ namespace BINrepackTest
                       
                         if (arqObj.Groups[iG].Faces[iF][iI].TextureIndex <= 0 || arqObj.Groups[iG].Faces[iF][iI].TextureIndex - 1 >= arqObj.Textures.Count)
                         {
-                            vertice.Texture = new Vector2();
+                            vertice.Texture = new Vector2(0, 0);
                         }
-                        else 
+                        else
                         {
                             Vector2 texture = new Vector2(
                             arqObj.Textures[arqObj.Groups[iG].Faces[iF][iI].TextureIndex - 1].X,
@@ -92,7 +92,7 @@ namespace BINrepackTest
         
                         if (arqObj.Groups[iG].Faces[iF][iI].NormalIndex <= 0 || arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1 >= arqObj.Normals.Count)
                         {
-                            vertice.Normal = new Vector3();
+                            vertice.Normal = new Vector3(0, 0, 0);
                         }
                         else 
                         {

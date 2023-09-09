@@ -16,13 +16,13 @@ namespace BINrepackTest
 
      Em desenvolvimento
      Para Pesquisas
-     08-09-2023
-     version: beta.1.3.0.0
+     09-09-2023
+     version: beta.1.3.0.1
      */
 
     public static partial class BINrepack
     {
-        public const string VERSION = "B.1.3.0.0";
+        public const string VERSION = "B.1.3.0.1";
 
         private static byte[] MakeBonePairArry(BonePairLine[] bonePairLines) 
         {
@@ -271,7 +271,7 @@ namespace BINrepackTest
             BitConverter.GetBytes(finalWeightMap.BoneID1).CopyTo(res, 0x00);
             BitConverter.GetBytes(finalWeightMap.BoneID2).CopyTo(res, 0x04);
             BitConverter.GetBytes(finalWeightMap.BoneID3).CopyTo(res, 0x08);
-            BitConverter.GetBytes(finalWeightMap.links).CopyTo(res, 0x0C);
+            BitConverter.GetBytes(finalWeightMap.Links).CopyTo(res, 0x0C);
             BitConverter.GetBytes(finalWeightMap.Weight1).CopyTo(res, 0x010);
             BitConverter.GetBytes(finalWeightMap.Weight2).CopyTo(res, 0x014);
             BitConverter.GetBytes(finalWeightMap.Weight3).CopyTo(res, 0x018);
@@ -369,6 +369,13 @@ namespace BINrepackTest
                         vertex.Weight3 = Faces[i][t].WeightMap.Weight3;
 
                         face.Vertexs.Add(vertex);
+
+                        IntermediaryWeightMap weightMap = vertex.GetIntermediaryWeightMap();
+                        if (!face.WeightMapOnFace.Contains(weightMap))
+                        {
+                            face.WeightMapOnFace.Add(weightMap);
+                        }
+
                     }
 
                     group.Faces.Add(face);
@@ -400,23 +407,27 @@ namespace BINrepackTest
                 int vertexCount = 0;
 
                 FinalSegment tempSegment = null;
+                List<IntermediaryWeightMap> IntermediaryWeightMapList = new List<IntermediaryWeightMap>();
+
 
                 while (FacesList.Count != 0)
                 {
                     if (tempSegment == null)
                     {
                         tempSegment = new FinalSegment();
+                        IntermediaryWeightMapList.Clear();
                         segments.Add(tempSegment);
                     }
 
                     if (vertexCount <= 44)
                     {
                         IntermediaryFace intermediaryFace = null;
-                        if (vertexCount + FacesList[0].Vertexs.Count <= 44)
+                        if (vertexCount + FacesList[0].Vertexs.Count <= 44 && CreateNewIntermediaryWeightMapList(IntermediaryWeightMapList, FacesList[0].WeightMapOnFace).Count() <= 15)
                         {
                             intermediaryFace = FacesList[0];
                             FacesList.RemoveAt(0);
                             vertexCount += intermediaryFace.Vertexs.Count;
+                            IntermediaryWeightMapList = CreateNewIntermediaryWeightMapList(IntermediaryWeightMapList, intermediaryFace.WeightMapOnFace).ToList();
                         }
                         else 
                         {
@@ -428,11 +439,12 @@ namespace BINrepackTest
                                 {
                                     if (iI < FacesList.Count)
                                     {
-                                        if (vertexCount + FacesList[iI].Vertexs.Count <= 44)
+                                        if (vertexCount + FacesList[iI].Vertexs.Count <= 44 && CreateNewIntermediaryWeightMapList(IntermediaryWeightMapList, FacesList[iI].WeightMapOnFace).Count() <= 15)
                                         {
                                             intermediaryFace = FacesList[iI];
                                             FacesList.RemoveAt(iI);
                                             vertexCount += intermediaryFace.Vertexs.Count;
+                                            IntermediaryWeightMapList = CreateNewIntermediaryWeightMapList(IntermediaryWeightMapList, intermediaryFace.WeightMapOnFace).ToList();
                                             ok = true;
                                         }
                                         iI++;
@@ -534,7 +546,7 @@ namespace BINrepackTest
 
 
                                 FinalWeightMap map = new FinalWeightMap();
-                                map.links = intermediaryVertex.Links;
+                                map.Links = intermediaryVertex.Links;
                                 map.BoneID1 = IndexBoneID1 * 4;
                                 map.Weight1 = intermediaryVertex.Weight1;
                                 map.BoneID2 = IndexBoneID2 * 4;
@@ -561,6 +573,7 @@ namespace BINrepackTest
                     else
                     {
                         tempSegment = null;
+                        IntermediaryWeightMapList.Clear();
                         vertexCount = 0;
                     }
 
@@ -589,6 +602,22 @@ namespace BINrepackTest
 
             return finalStructure;
         }
+
+        private static IEnumerable<IntermediaryWeightMap> CreateNewIntermediaryWeightMapList(IEnumerable<IntermediaryWeightMap> List, IEnumerable<IntermediaryWeightMap> ToAdd) 
+        {
+            List<IntermediaryWeightMap> res = new List<IntermediaryWeightMap>();
+            res.AddRange(List);
+            foreach (var item in ToAdd)
+            {
+                if (!res.Contains(item))
+                {
+                    res.Add(item);
+                }
+            }
+            return res;
+        }
+
+
 
         private static void MakeFinalBinFile(string binpath, FinalStructure finalStructure, IdxBin idxBin, BoneLine[] bones, float ConversionFactorValue) 
         {
