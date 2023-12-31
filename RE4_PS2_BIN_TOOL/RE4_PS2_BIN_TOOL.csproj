@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8D7BE7D1-2B89-42DA-8114-87B19E817643}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RE4_PS2_BIN_TOOL</RootNamespace>
+    <AssemblyName>RE4_PS2_BIN_TOOL</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>RE4_PS2_BIN_TOOL.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ALL\AltTextWriter.cs" />
+    <Compile Include="ALL\CONSTs.cs" />
+    <Compile Include="ALL\IdxMaterial.cs" />
+    <Compile Include="ALL\IdxMaterialLoad.cs" />
+    <Compile Include="ALL\IdxMaterialParser.cs" />
+    <Compile Include="ALL\IdxMtl.cs" />
+    <Compile Include="ALL\IdxMtlParser.cs" />
+    <Compile Include="ALL\MaterialPart.cs" />
+    <Compile Include="ALL\Utils.cs" />
+    <Compile Include="EXTRACT\BINdecoder.cs" />
+    <Compile Include="EXTRACT\Debug.cs" />
+    <Compile Include="EXTRACT\OutputFiles.cs" />
+    <Compile Include="EXTRACT\OutputMaterial.cs" />
+    <Compile Include="EXTRACT\PS2BIN.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="REPACK\BINmakeFile.cs" />
+    <Compile Include="REPACK\BINrepackOBJ.cs" />
+    <Compile Include="REPACK\BINrepackSMD.cs" />
+    <Compile Include="REPACK\IdxBinLoader.cs" />
+    <Compile Include="REPACK\BINrepackFinal.cs" />
+    <Compile Include="REPACK\BINrepackIntermediary.cs" />
+    <Compile Include="REPACK\MtlConverter.cs" />
+    <Compile Include="REPACK\MtlLoad.cs" />
+    <Compile Include="REPACK\Structures\FinalStructure.cs" />
+    <Compile Include="REPACK\Structures\IntermediaryStructure.cs" />
+    <Compile Include="REPACK\Structures\StartStructure.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IGroupNameDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\ILineGroup.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IMaterialDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IMaterialNameDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IMtlLibDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IObjectNameDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\Elements\Line.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\IMtlLoader.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\IMtlLoaderFactory.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\MtlLoader.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\MtlLoaderFactory.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\GroupNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IGroupNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\ILineParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IMaterialNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IMaterialParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IMtlLibParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IObjectNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\LineParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\MaterialNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\MaterialParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\MtlLibParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\ObjectNameParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Common\StringExtensions.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\DataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IFaceGroup.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\INormalDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\ITextureDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\DataStore\IVertexDataStore.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\Elements\Face.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\Elements\Group.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\Material.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\Vec3.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\VertexData\Normal.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\VertexData\Texture.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Data\VertexData\Vertex.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\IObjLoader.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\IObjLoaderFactory.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\LoaderBase.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\LoadResult.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\ObjLoader.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\Loaders\ObjLoaderFactory.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\FaceParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IFaceParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\INormalParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\ITextureParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\ITypeParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\Interfaces\IVertexParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\NormalParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\TextureParser.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\TypeParserBase.cs" />
+    <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\VertexParser.cs" />
+    <Compile Include="REPACK\SMD_READER_API\SmdReader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
