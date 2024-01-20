@@ -188,7 +188,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             //bonepair_addr_
             if (bonepair_addr_ != 0x0)
             {
-                br.BaseStream.Position = bonepair_addr_;
+                br.BaseStream.Position = startOffset + bonepair_addr_;
                 txt2.WriteLine("");
                 txt2.WriteLine("bonepair_addr_: 0x" + bonepair_addr_.ToString("X8"));
 
@@ -210,7 +210,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
 
             //bonesPoint
-            br.BaseStream.Position = bonesPoint;
+            br.BaseStream.Position = startOffset + bonesPoint;
             txt2.WriteLine("");
             txt2.WriteLine("bones:   (in hexadecimal)");
 
@@ -232,7 +232,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             //---------------------------------------------
 
             //MaterialOffset
-            br.BaseStream.Position = MaterialOffset;
+            br.BaseStream.Position = startOffset + MaterialOffset;
 
             txt2.WriteLine("");
             txt2.WriteLine("MaterialList:   (in hexadecimal)");
@@ -271,7 +271,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                 
                 txt2.WriteLine("");
 
-                br.BaseStream.Position = NodesTablePointers[t];
+                br.BaseStream.Position = startOffset + NodesTablePointers[t];
 
                 txt2.WriteLine("NodeTablePointer: 0x" + NodesTablePointers[t].ToString("X8"));
 

@@ -63,11 +63,18 @@ namespace RE4_PS2_BIN_TOOL.ALL
         {
             this.FolderName = FolderName;
             this.TextureID = TextureID;
-            this.Format = ImageFormat;
+            this.Format = ImageFormat.ToUpperInvariant();
         }
 
         public TexPathRef(string texturePath)
         {
+            this.Format = "NULL";
+            this.FolderName = "NULL";
+            if (texturePath == null)
+            {
+                texturePath = "";
+            }
+
             texturePath = texturePath.Replace("\\", "/");
             var split = texturePath.Split('/').Where(s => s.Length != 0).ToArray();
 
@@ -75,7 +82,7 @@ namespace RE4_PS2_BIN_TOOL.ALL
             {
                 var last = split.Last().Split('.').Where(s => s.Length != 0).ToArray();
                 TextureID = byte.Parse(Utils.ReturnValidDecValue(last[0]), NumberStyles.Integer, CultureInfo.InvariantCulture);
-                Format = last.Last();
+                Format = last.Last().ToUpperInvariant();
             }
             catch (Exception)
             {

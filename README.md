@@ -6,6 +6,9 @@ Extract and repack ps2 re4 bin files
 Esse é o código resultado a partir das pesquisas sobre os arquivos .bin do re4 de ps2, realizadas por Jaderlink em conjunto com o HardRain.
 <br>Pode considerar que o programa está na fase final de desenvolvimento em questão de usabilidade. Você pode editar todos BIN do jogo, com suporte aos arquivos OBJ, SMD (suporte a pesos por bone) e também ele reconhece os IDs das texturas no arquivo MTL;
 
+**Update: B.1.4.0.1**
+<br>Corrigido bug que crashava o programa, agora, ao ter material sem a textura principal "map_Kd", será preenchido o Id da textura como 0000; 
+
 ## Update: B.1.4.0.0
 
 Agora o "Extract" e "Repack" são feitos somente por um programa, melhorei como os índices das texturas são atribuídos ao modelo, que pode ser feito usando o arquivo MTL, ou o arquivo "ixdmaterial";

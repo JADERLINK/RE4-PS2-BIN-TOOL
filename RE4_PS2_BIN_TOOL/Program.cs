@@ -9,7 +9,7 @@ namespace RE4_PS2_BIN_TOOL
 {
     class Program
     {
-        public const string VERSION = "B.1.4.0.0 (2023-12-31)";
+        public const string VERSION = "B.1.4.0.1 (2024-01-20)";
 
         public static string headerText()
         {
