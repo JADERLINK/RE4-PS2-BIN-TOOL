@@ -9,11 +9,13 @@ namespace RE4_PS2_BIN_TOOL
 {
     class Program
     {
-        public const string VERSION = "B.1.4.0.1 (2024-01-20)";
+        public const string VERSION = "B.1.4.0.2 (2024-03-03)";
 
         public static string headerText()
         {
-            return "# RE4_PS2_BIN_TOOL" + Environment.NewLine +
+            return "# github.com/JADERLINK/RE4-PS2-BIN-TOOL" + Environment.NewLine +
+                   "# youtube.com/@JADERLINK" + Environment.NewLine +
+                   "# RE4_PS2_BIN_TOOL" + Environment.NewLine +
                    "# By JADERLINK and HardRain" + Environment.NewLine +
                   $"# Version {VERSION}";
         }
@@ -26,6 +28,8 @@ namespace RE4_PS2_BIN_TOOL
             {
                 Console.WriteLine("For more information read:");
                 Console.WriteLine("https://github.com/JADERLINK/RE4-PS2-BIN-TOOL");
+                Console.WriteLine("Press any key to close the console.");
+                Console.ReadKey();
             }
             else if (args.Length >= 1 && File.Exists(args[0]))
             {

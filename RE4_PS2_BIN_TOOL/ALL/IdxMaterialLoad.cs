@@ -29,6 +29,8 @@ namespace RE4_PS2_BIN_TOOL.ALL
                 }
                 else if (line.StartsWith("USEMATERIAL"))
                 {
+                    temp = new MaterialPart();
+
                     var split = line.Split(':');
                     if (split.Length >= 2)
                     {
@@ -36,7 +38,6 @@ namespace RE4_PS2_BIN_TOOL.ALL
 
                         if (!idx.MaterialDic.ContainsKey(name))
                         {
-                            temp = new MaterialPart();
                             idx.MaterialDic.Add(name, temp);
                         }
                     }
