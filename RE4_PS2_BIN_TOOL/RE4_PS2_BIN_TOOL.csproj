@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="ALL\AltTextWriter.cs" />
     <Compile Include="ALL\CONSTs.cs" />
+    <Compile Include="ALL\FloatExtensions.cs" />
     <Compile Include="ALL\IdxMaterial.cs" />
     <Compile Include="ALL\IdxMaterialLoad.cs" />
     <Compile Include="ALL\IdxMaterialParser.cs" />

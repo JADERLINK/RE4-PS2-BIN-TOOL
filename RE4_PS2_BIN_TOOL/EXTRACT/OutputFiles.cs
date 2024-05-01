@@ -12,9 +12,8 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
     {
 
         //Studiomdl Data
-        public static void CreateSMD(BIN bin, string baseDirectory, string baseFileName)
+        public static void CreateSMD(PS2BIN bin, string baseDirectory, string baseFileName)
         {
-            var inv = System.Globalization.CultureInfo.InvariantCulture;
 
             TextWriter text = new FileInfo(Path.Combine(baseDirectory, baseFileName + ".smd")).CreateText();
 
@@ -34,9 +33,9 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             for (int i = 0; i < bin.bones.Length; i++)
             {
                 text.WriteLine(bin.bones[i].BoneID + "  " +
-                    (bin.bones[i].PositionX / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                    (bin.bones[i].PositionZ * -1 / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                    (bin.bones[i].PositionY / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + "  0.000000 0.000000 0.000000");
+                    (bin.bones[i].PositionX / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                    (bin.bones[i].PositionZ * -1 / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                    (bin.bones[i].PositionY / CONSTs.GLOBAL_SCALE).ToFloatString() + "  0.0 0.0 0.0");
             }
 
             text.WriteLine("end");
@@ -70,7 +69,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight1.ToString("f9", inv);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight1.ToFloatString();
                             }
 
                             if (Amount > 1)
@@ -83,7 +82,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight2.ToString("f9", inv);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight2.ToFloatString();
                             }
 
                             if (Amount > 2)
@@ -96,7 +95,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                                 }
 
                                 res += " " + UseBone + " " +
-                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight3.ToString("f9", inv);
+                                    bin.Nodes[t].Segments[i].WeightMapTableLines[l].weight3.ToFloatString();
                             }
                             Weights.Add(res);
                         }
@@ -124,22 +123,32 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                             {
                                 VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[counter - l];
 
-                                pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                                          ((float)vertexLine.VerticeZ * -1f * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                                          ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv));
+                                pos[l] = (((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                                          ((float)vertexLine.VerticeZ * -1f * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                                          ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString());
 
-                                uvs[l] = (((float)vertexLine.TextureU / 255f).ToString("f9", inv) + " " +
-                                          ((float)vertexLine.TextureV / 255f).ToString("f9", inv));
+                                uvs[l] = (((float)vertexLine.TextureU / 255f).ToFloatString() + " " +
+                                          ((float)vertexLine.TextureV / 255f).ToFloatString());
 
                                 if (bin.binType != BinType.ScenarioWithColors)
                                 {
-                                    normals[l] = (((float)vertexLine.NormalX / 127f).ToString("f9", inv) + " " +
-                                                  ((float)vertexLine.NormalZ * -1f / 127f).ToString("f9", inv) + " " +
-                                                  ((float)vertexLine.NormalY / 127f).ToString("f9", inv));
+                                    float nx = vertexLine.NormalX;
+                                    float ny = vertexLine.NormalY;
+                                    float nz = vertexLine.NormalZ;
+
+                                    float NORMAL_FIX = (float)Math.Sqrt((nx * nx) + (ny * ny) + (nz * nz));
+                                    NORMAL_FIX = (NORMAL_FIX == 0) ? 1 : NORMAL_FIX;
+                                    nx /= NORMAL_FIX;
+                                    ny /= NORMAL_FIX;
+                                    nz /= NORMAL_FIX * -1;
+
+                                    normals[l] = ((nx).ToFloatString() + " " +
+                                                  (nz).ToFloatString() + " " +
+                                                  (ny).ToFloatString());
                                 }
                                 else
                                 {
-                                    normals[l] = "0.00000 0.00000 0.00000";
+                                    normals[l] = "0.0 0.0 0.0";
                                 }
 
                                 int WeightIndex = (vertexLine.UnknownB / 2);
@@ -198,9 +207,8 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
         }
 
-        public static void CreateOBJ(BIN bin, string baseDirectory, string baseFileName)
+        public static void CreateOBJ(PS2BIN bin, string baseDirectory, string baseFileName)
         {
-            var inv = System.Globalization.CultureInfo.InvariantCulture;
 
             TextWriter text = new FileInfo(Path.Combine(baseDirectory, baseFileName + ".obj")).CreateText();
             text.WriteLine(Program.headerText());
@@ -220,18 +228,37 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
                     {
                         VertexLine vertexLine = bin.Nodes[t].Segments[i].vertexLines[l];
 
-                        text.WriteLine("v " + ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv) + " " +
-                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToString("f9", inv));
+                        string v = "v " + 
+                             ((float)vertexLine.VerticeX * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                             ((float)vertexLine.VerticeY * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
+                             ((float)vertexLine.VerticeZ * bin.Nodes[t].Segments[i].ConversionFactorValue / CONSTs.GLOBAL_SCALE).ToFloatString();
 
-                        text.WriteLine("vt " + ((float)vertexLine.TextureU / 255f).ToString("f9", inv) + " " +
-                        ((float)vertexLine.TextureV / 255f).ToString("f9", inv));
+                        if (bin.binType == BinType.ScenarioWithColors)
+                        {
+                            v += " " +
+                             ((float)vertexLine.NormalX / 128f).ToFloatString() + " " +
+                             ((float)vertexLine.NormalY / 128f).ToFloatString() + " " +
+                             ((float)vertexLine.NormalZ / 128f).ToFloatString() + " " +
+                             ((float)vertexLine.UnknownB / 128f).ToFloatString();
+                        }
+
+                        text.WriteLine(v);
+
+                        text.WriteLine("vt " + (vertexLine.TextureU / 255f).ToFloatString() + " " + (vertexLine.TextureV / 255f).ToFloatString());
 
                         if (bin.binType != BinType.ScenarioWithColors)
                         {
-                            text.WriteLine("vn " + ((float)vertexLine.NormalX / 127f).ToString("f9", inv) + " " +
-                                 ((float)vertexLine.NormalY / 127f).ToString("f9", inv) + " " +
-                                 ((float)vertexLine.NormalZ / 127f).ToString("f9", inv));
+                            float nx = vertexLine.NormalX; // antigamente era dividido por 127f 
+                            float ny = vertexLine.NormalY;
+                            float nz = vertexLine.NormalZ;
+
+                            float NORMAL_FIX = (float)Math.Sqrt((nx * nx) + (ny * ny) + (nz * nz));
+                            NORMAL_FIX = (NORMAL_FIX == 0) ? 1 : NORMAL_FIX;
+                            nx /= NORMAL_FIX;
+                            ny /= NORMAL_FIX;
+                            nz /= NORMAL_FIX;
+
+                            text.WriteLine("vn " + nx.ToFloatString() + " " + ny.ToFloatString() + " " + nz.ToFloatString());
                         }
                     }
 
@@ -303,7 +330,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
         }
 
-        public static void CreateIdxbin(BIN bin, string baseDirectory, string baseFileName)
+        public static void CreateIdxbin(PS2BIN bin, string baseDirectory, string baseFileName)
         {
             var inv = System.Globalization.CultureInfo.InvariantCulture;
 
@@ -317,16 +344,16 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             IDXBINtext.WriteLine();
 
             IDXBINtext.WriteLine(": 2 bytes in hex (nTex)");
-            IDXBINtext.WriteLine("unknown1:" + BitConverter.ToString(bin.unknown1).Replace("-", ""));
+            IDXBINtext.WriteLine("unknown1:" + BitConverter.ToString(BitConverter.GetBytes(bin.Unknown1)).Replace("-", "")); // compatibilidade com versões antigas
 
             IDXBINtext.WriteLine(": 1 bytes in hex (frac)");
-            IDXBINtext.WriteLine("unknown2:" + bin.unknown2.ToString("X2"));
+            IDXBINtext.WriteLine("unknown2:" + bin.Unknown2.ToString("X2"));
 
-            IDXBINtext.WriteLine(": 4 bytes in hex (version)");
-            IDXBINtext.WriteLine("unknown4_B:" + BitConverter.ToString(bin.unknown4_B).Replace("-", ""));
+            IDXBINtext.WriteLine(": 4 bytes in hex (versionFlag)");
+            IDXBINtext.WriteLine("unknown4_B:" + BitConverter.ToString(BitConverter.GetBytes(bin.VersionFlag)).Replace("-", "")); // compatibilidade com versões antigas
 
             IDXBINtext.WriteLine(": 4 bytes in hex (textureFlags)");
-            IDXBINtext.WriteLine("unknown4_unk009:" + BitConverter.ToString(bin.unknown4_unk009).Replace("-", ""));
+            IDXBINtext.WriteLine("unknown4_unk009:" + BitConverter.ToString(BitConverter.GetBytes(bin.TextureFlags)).Replace("-", "")); // compatibilidade com versões antigas
 
             IDXBINtext.WriteLine();
             IDXBINtext.WriteLine(": ## DrawDistance float values ##");
@@ -339,15 +366,15 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             IDXBINtext.WriteLine("DrawDistancePositiveZ:" + bin.DrawDistancePositiveZ.ToString("f9", inv));
 
 
-            if (bin.bonepairCount != 0)
+            if (bin.BonepairCount != 0)
             {
                 IDXBINtext.WriteLine();
                 IDXBINtext.WriteLine(": ## bonepair ##");
                 IDXBINtext.WriteLine(": bonepairCount in decimal value");
-                IDXBINtext.WriteLine("bonepairCount:" + bin.bonepairCount.ToString());
+                IDXBINtext.WriteLine("bonepairCount:" + bin.BonepairCount.ToString());
 
                 IDXBINtext.WriteLine(": bonepairLines -> 8 bytes in hex");
-                for (int i = 0; i < bin.bonepairCount; i++)
+                for (int i = 0; i < bin.BonepairCount; i++)
                 {
                     IDXBINtext.WriteLine("bonepairLine_" + i + ":" + BitConverter.ToString(bin.bonepairLines[i]).Replace("-", ""));
                 }

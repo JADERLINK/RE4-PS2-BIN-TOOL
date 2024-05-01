@@ -9,7 +9,7 @@ namespace RE4_PS2_BIN_TOOL
 {
     class Program
     {
-        public const string VERSION = "B.1.4.0.2 (2024-03-03)";
+        public const string VERSION = "B.1.4.03 (2024-05-01)";
 
         public static string headerText()
         {
@@ -73,10 +73,8 @@ namespace RE4_PS2_BIN_TOOL
                 try
                 {
                     Stream stream = fileInfo.OpenRead();
-                    ALL.AltTextWriter txt2 = new ALL.AltTextWriter(Path.Combine(baseDirectory, baseName + ".Debug.txt2"), createTxt2);
-                    var bin = EXTRACT.BINdecoder.Decode(stream, 0, out _ , txt2);
+                    var bin = EXTRACT.BINdecoder.Decode(stream, 0, out _ );
                     stream.Close();
-                    txt2.Close();
 
                     EXTRACT.OutputFiles.CreateOBJ(bin, baseDirectory, baseName);
                     EXTRACT.OutputFiles.CreateSMD(bin, baseDirectory, baseName);
@@ -87,6 +85,11 @@ namespace RE4_PS2_BIN_TOOL
 
                     var idxMtl = ALL.IdxMtlParser.Parser(material, baseName);
                     EXTRACT.OutputMaterial.CreateMTL(idxMtl, baseDirectory, baseName);
+
+                    if (createTxt2)
+                    {
+                        EXTRACT.Debug.Info(bin, baseDirectory, baseName);
+                    }
 
                     if (CreateDebugFiles)
                     {

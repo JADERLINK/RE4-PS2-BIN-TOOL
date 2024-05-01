@@ -10,10 +10,186 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 {
     public static class Debug
     {
-        //debug
-        public static void CreateDrawDistanceBoxObj(BIN bin, string baseDiretory, string baseFileName)
+
+        public static void Info(PS2BIN bin, string baseDirectory, string baseFileName)
         {
-            TextWriter text = new FileInfo(Path.Combine(baseDiretory, baseFileName + ".Debug.DrawDistanceBox.obj")).CreateText();
+            var txt2 = new FileInfo(Path.Combine(baseDirectory, baseFileName + ".Debug.txt2")).CreateText();
+
+            txt2.WriteLine(Program.headerText());
+            txt2.WriteLine("");
+
+            txt2.WriteLine("Magic: 0x" + bin.Magic.ToString("X4"));
+            txt2.WriteLine("Unknown1: 0x" + bin.Unknown1.ToString("X4"));
+            txt2.WriteLine("BonesPoint: 0x" + bin.BonesPoint.ToString("X8"));
+            txt2.WriteLine("Unknown2: 0x" + bin.Unknown2.ToString("X2"));
+            txt2.WriteLine("BonesCount: " + bin.BonesCount.ToString());
+            txt2.WriteLine("MaterialCount: " + bin.MaterialCount.ToString());
+            txt2.WriteLine("MaterialOffset: 0x" + bin.MaterialOffset.ToString("X8"));
+            txt2.WriteLine("Padding1: 0x" + bin.Padding1.ToString("X8"));
+            txt2.WriteLine("Padding2: 0x" + bin.Padding2.ToString("X8"));
+            txt2.WriteLine("VersionFlag: 0x" + bin.VersionFlag.ToString("X8 ")+ "  {unknown4_B}");
+            txt2.WriteLine("BonepairPoint: 0x" + bin.BonepairPoint.ToString("X8"));
+            txt2.WriteLine("Unknown408: 0x" + bin.Unknown408.ToString("X8") + "  {unknown4_unk008}");
+            txt2.WriteLine("TextureFlags: 0x" + bin.TextureFlags.ToString("X8") + "  {unknown4_unk009}");
+            txt2.WriteLine("BonepairPoint: 0x" + bin.BonepairPoint.ToString("X8"));
+            txt2.WriteLine("Unknown410: 0x" + bin.Unknown410.ToString("X8") + "  {unknown4_unk010}");
+            txt2.WriteLine("unk012: XYZ padding");
+            txt2.WriteLine("DrawDistanceNegativeX: " + bin.DrawDistanceNegativeX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("DrawDistanceNegativeY: " + bin.DrawDistanceNegativeY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("DrawDistanceNegativeZ: " + bin.DrawDistanceNegativeZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("DrawDistanceNegativePadding: " + bin.DrawDistanceNegativePadding.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("unk013: XYZ");
+            txt2.WriteLine("DrawDistancePositiveX: " + bin.DrawDistancePositiveX.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("DrawDistancePositiveY: " + bin.DrawDistancePositiveY.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("DrawDistancePositiveZ: " + bin.DrawDistancePositiveZ.ToString("f9", System.Globalization.CultureInfo.InvariantCulture) + "f");
+            txt2.WriteLine("Padding3: " + bin.Padding3.ToString("X8"));
+            txt2.WriteLine("");
+            //end header
+
+            //bonepair_addr_
+            if (bin.BonepairPoint != 0)
+            {
+                txt2.WriteLine("");
+                txt2.WriteLine("BonepairPoint: 0x" + bin.BonepairPoint.ToString("X8"));
+                txt2.WriteLine("bonepairCount: " + bin.BonepairCount);
+                for (int i = 0; i < bin.BonepairCount; i++)
+                {
+                    txt2.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(bin.bonepairLines[i]));
+                }
+                txt2.WriteLine("");
+            }
+
+            //bonesPoint
+            txt2.WriteLine("");
+            txt2.WriteLine("bones:   (in hexadecimal)");
+            for (int i = 0; i < bin.BonesCount; i++)
+            {
+                txt2.WriteLine("[" + i.ToString("X2") + "]: " + BitConverter.ToString(bin.bones[i].boneLine));
+            }
+            txt2.WriteLine("");
+
+            //MaterialOffset
+            txt2.WriteLine("");
+            txt2.WriteLine("MaterialList:   (in hexadecimal)");
+            for (int i = 0; i < bin.MaterialCount; i++)
+            {
+                txt2.WriteLine("[" + i + "]: " + BitConverter.ToString(bin.materials[i].materialLine) + "     NodeTablePoint: 0x" + bin.materials[i].nodeTablePoint.ToString("X8"));
+            }
+            txt2.WriteLine("");
+            txt2.WriteLine("---------------");
+
+            for (int t = 0; t < bin.MaterialCount; t++)
+            {
+                txt2.WriteLine("");
+                txt2.WriteLine("NodeTablePointer: 0x" + bin.materials[t].nodeTablePoint.ToString("X8"));
+                txt2.WriteLine("NodeHeaderArray: " + BitConverter.ToString(bin.Nodes[t].NodeHeaderArray) + "  {hex}");
+                txt2.WriteLine("TotalBytesAmount: 0x" + bin.Nodes[t].TotalBytesAmount.ToString("X4"));
+                txt2.WriteLine("segmentAmountWithoutFirst: " + bin.Nodes[t].segmentAmountWithoutFirst);
+                txt2.WriteLine("BonesIdAmount: " + bin.Nodes[t].BonesIdAmount);
+                txt2.WriteLine("NodeBoneList: " + BitConverter.ToString(bin.Nodes[t].NodeBoneList) + "  {hex}");
+                txt2.WriteLine("TotalNumberOfSegments: " + (bin.Nodes[t].segmentAmountWithoutFirst + 1));
+                txt2.WriteLine("");
+
+                for (int i = 0; i < bin.Nodes[t].Segments.Length; i++)
+                {
+
+                    if (bin.Nodes[t].Segments[i].WeightMapHeader != null)
+                    {
+                        //WeightMap
+                        txt2.WriteLine("WeightMap");
+                        txt2.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] WeightMapHeader: " + BitConverter.ToString(bin.Nodes[t].Segments[i].WeightMapHeader));
+                        txt2.WriteLine("WeightMapTableBytesAmount: 0x" + (bin.Nodes[t].Segments[i].WeightMapTableLines.Length * 0x20).ToString("X4"));
+                        txt2.WriteLine("WeightMapTableLinesAmount: " + bin.Nodes[t].Segments[i].WeightMapTableLines.Length.ToString());
+                        for (int a = 0; a < bin.Nodes[t].Segments[i].WeightMapTableLines.Length; a++)
+                        {
+                            txt2.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + a.ToString("D2") + "]: " + BitConverter.ToString(bin.Nodes[t].Segments[i].WeightMapTableLines[a].weightMapTableLine));
+                        }
+                 
+                        txt2.WriteLine("");
+                    }
+
+                    txt2.WriteLine("");
+                    txt2.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] TopTagVifHeader:");
+                    txt2.WriteLine("TopTagVifHeader2080:      " + BitConverter.ToString(bin.Nodes[t].Segments[i].TopTagVifHeader2080));
+                    txt2.WriteLine("TopTagVifHeaderWithScale: " + BitConverter.ToString(bin.Nodes[t].Segments[i].TopTagVifHeaderWithScale));
+                    txt2.WriteLine("TopTagVifHeader2180:      " + BitConverter.ToString(bin.Nodes[t].Segments[i].TopTagVifHeader2180));
+                    txt2.WriteLine("chunkByteAmount: 0x" + (bin.Nodes[t].Segments[i].TopTagVifHeader2180[0] * 0x10).ToString("X4"));
+                    txt2.WriteLine("LineAmount in decimal: " + bin.Nodes[t].Segments[i].TopTagVifHeaderWithScale[0]);
+                    txt2.WriteLine("ConversionFactorValue: " + bin.Nodes[t].Segments[i].ConversionFactorValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    txt2.WriteLine("IsScenarioColor: " + bin.Nodes[t].Segments[i].IsScenarioColor);
+                    txt2.WriteLine("");
+                    txt2.WriteLine("subMeshChunk:");
+
+                    if (bin.Nodes[t].Segments[i].IsScenarioColor)
+                    {
+                        txt2.WriteLine(".[MaterialCount][TotalNumberOfSegments][line]: VerticeX, VerticeY, VerticeZ, IndexMount, TextureU, TextureV, UnknownA, IndexComplement, ColorR, ColorG, ColorB, UnknownB");
+                    }
+                    else
+                    {
+                        txt2.WriteLine(".[MaterialCount][TotalNumberOfSegments][line]: VerticeX, VerticeY, VerticeZ, UnknownB, NormalX, NormalY, NormalZ, IndexComplement, TextureU, TextureV, UnknownA, IndexMount");
+                    }
+
+
+                    for (int l = 0; l < bin.Nodes[t].Segments[i].vertexLines.Length; l++)
+                    {
+                        var v = bin.Nodes[t].Segments[i].vertexLines[l];
+                        if (bin.Nodes[t].Segments[i].IsScenarioColor)
+                        {
+                            txt2.WriteLine(".[" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
+                              "  vX: " + v.VerticeX.ToString().PadLeft(6) +
+                              "  vY: " + v.VerticeY.ToString().PadLeft(6) +
+                              "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
+                              "  IndexMount: " + v.IndexMount.ToString("X4") +
+                              "  tU: " + v.TextureU.ToString().PadLeft(6) +
+                              "  tV: " + v.TextureV.ToString().PadLeft(6) +
+                              "  UnkA: " + v.UnknownA.ToString("X4") +
+                              "  IdxComp: " + v.IndexComplement.ToString("X4") +
+                              "  cR: " + v.NormalX.ToString().PadLeft(6) +
+                              "  cG: " + v.NormalY.ToString().PadLeft(6) +
+                              "  cB: " + v.NormalZ.ToString().PadLeft(6) +
+                              "  UnkB: " + v.UnknownB.ToString("X4")
+                             );
+                        }
+                        else 
+                        {
+                            txt2.WriteLine(".[" + t.ToString("D2") + "][" + i.ToString("D2") + "][" + l.ToString("D2") + "]:" +
+                                  "  vX: " + v.VerticeX.ToString().PadLeft(6) +
+                                  "  vY: " + v.VerticeY.ToString().PadLeft(6) +
+                                  "  vZ: " + v.VerticeZ.ToString().PadLeft(6) +
+                                  "  UnkB: " + v.UnknownB.ToString("X4") +
+                                  "  nX: " + v.NormalX.ToString().PadLeft(6) +
+                                  "  nY: " + v.NormalY.ToString().PadLeft(6) +
+                                  "  nZ: " + v.NormalZ.ToString().PadLeft(6) +
+                                  "  IdxComp: " + v.IndexComplement.ToString("X4") +
+                                  "  tU: " + v.TextureU.ToString().PadLeft(6) +
+                                  "  tV: " + v.TextureV.ToString().PadLeft(6) +
+                                  "  UnkA: " + v.UnknownA.ToString("X4") +
+                                  "  IndexMount: " + v.IndexMount.ToString("X4"));
+                        }
+
+                    }
+
+                    txt2.WriteLine("");
+
+                    if (bin.Nodes[t].Segments[i].EndTagVifCommand != null)
+                    {
+                        txt2.WriteLine("[" + t.ToString("D2") + "][" + i.ToString("D2") + "] EndTagVifCommand: " + BitConverter.ToString(bin.Nodes[t].Segments[i].EndTagVifCommand));
+                        txt2.WriteLine("");
+                    }
+
+                }
+            }
+
+            txt2.WriteLine("");
+            txt2.WriteLine("End File");
+
+            txt2.Close();
+        }
+
+        //debug
+        public static void CreateDrawDistanceBoxObj(PS2BIN bin, string baseDirectory, string baseFileName)
+        {
+            TextWriter text = new FileInfo(Path.Combine(baseDirectory, baseFileName + ".Debug.DrawDistanceBox.obj")).CreateText();
             text.WriteLine(Program.headerText());
             text.WriteLine("");
 
@@ -91,10 +267,10 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
         }
 
         //debug
-        public static void CreateScaleLimitBoxObj(BIN bin, string baseDiretory, string baseFileName)
+        public static void CreateScaleLimitBoxObj(PS2BIN bin, string baseDirectory, string baseFileName)
         {
 
-            TextWriter text = new FileInfo(Path.Combine(baseDiretory, baseFileName + ".Debug.ScaleLimitBox.obj")).CreateText();
+            TextWriter text = new FileInfo(Path.Combine(baseDirectory, baseFileName + ".Debug.ScaleLimitBox.obj")).CreateText();
             text.WriteLine(Program.headerText());
             text.WriteLine("");
 

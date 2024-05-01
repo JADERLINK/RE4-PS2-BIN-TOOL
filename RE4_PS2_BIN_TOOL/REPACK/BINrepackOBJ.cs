@@ -13,11 +13,6 @@ namespace RE4_PS2_BIN_TOOL.REPACK
     Pesquisas feitas por HardHain e JaderLink.
     https://www.youtube.com/@JADERLINK
     https://www.youtube.com/@HardRainModder
-
-    Em desenvolvimento
-    Para Pesquisas
-    08-09-2023
-    version: beta.1.3.0.0
     */
 
     public static class BINrepackOBJ
@@ -46,7 +41,6 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
             StartStructure startStructure = new StartStructure();
 
-            Vector4 color = new Vector4(1, 1, 1, 1);
             StartWeightMap weightMap = new StartWeightMap(1, 0, 1, 0, 0, 0, 0);
 
             for (int iG = 0; iG < arqObj.Groups.Count; iG++)
@@ -96,14 +90,24 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                         }
                         else 
                         {
-                            Vector3 normal = new Vector3(
-                            arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].X,
-                            arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].Y,
-                            arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].Z
-                            );
+                            float nx = arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].X;
+                            float ny = arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].Y;
+                            float nz = arqObj.Normals[arqObj.Groups[iG].Faces[iF][iI].NormalIndex - 1].Z;
+                            float NORMAL_FIX = (float)Math.Sqrt((nx * nx) + (ny * ny) + (nz * nz));
+                            NORMAL_FIX = (NORMAL_FIX == 0) ? 1 : NORMAL_FIX;
+                            nx /= NORMAL_FIX;
+                            ny /= NORMAL_FIX;
+                            nz /= NORMAL_FIX;
 
-                            vertice.Normal = normal;
+                            vertice.Normal = new Vector3(nx, ny, nz);
                         }
+
+
+                        Vector4 color = new Vector4(
+                            arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].R,
+                            arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].G,
+                            arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].B,
+                            arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].A);
 
                         vertice.Color = color;
                         vertice.WeightMap = weightMap;
@@ -113,7 +117,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                         // --- verifica o vertice mais distante
 
-                        float temp = arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex-1].X;
+                        float temp = position.X;
                         if (temp < 0)
                         {
                             temp *= -1;
@@ -123,7 +127,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             FarthestVertex = temp;
                         }
 
-                        temp = arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].Y;
+                        temp = position.Y;
                         if (temp < 0)
                         {
                             temp *= -1;
@@ -133,7 +137,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             FarthestVertex = temp;
                         }
 
-                        temp = arqObj.Vertices[arqObj.Groups[iG].Faces[iF][iI].VertexIndex - 1].Z;
+                        temp = position.Z;
                         if (temp < 0)
                         {
                             temp *= -1;

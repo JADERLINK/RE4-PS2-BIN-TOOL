@@ -113,9 +113,9 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                                 finalVertex.TextureU = Utils.ParseFloatToShort(intermediaryVertex.TextureU * 255f);
                                 finalVertex.TextureV = Utils.ParseFloatToShort(intermediaryVertex.TextureV * 255f);
 
-                                finalVertex.ColorR = Utils.ParseFloatToShort(intermediaryVertex.ColorR * 0xFF);
-                                finalVertex.ColorG = Utils.ParseFloatToShort(intermediaryVertex.ColorG * 0xFF);
-                                finalVertex.ColorB = Utils.ParseFloatToShort(intermediaryVertex.ColorB * 0xFF);
+                                finalVertex.ColorR = Utils.ParseFloatToShort(intermediaryVertex.ColorR * 0x80);
+                                finalVertex.ColorG = Utils.ParseFloatToShort(intermediaryVertex.ColorG * 0x80);
+                                finalVertex.ColorB = Utils.ParseFloatToShort(intermediaryVertex.ColorB * 0x80);
                                 finalVertex.ColorA = Utils.ParseFloatToShort(intermediaryVertex.ColorA * 0x80);
 
                                 if (v >= 2)

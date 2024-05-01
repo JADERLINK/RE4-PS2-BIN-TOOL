@@ -6,6 +6,13 @@ Extract and repack ps2 re4 bin files
 Esse é o código resultado a partir das pesquisas sobre os arquivos .bin do re4 de ps2, realizadas por Jaderlink em conjunto com o HardRain.
 <br>Pode considerar que o programa está na fase final de desenvolvimento em questão de usabilidade. Você pode editar todos BIN do jogo, com suporte aos arquivos OBJ, SMD (suporte a pesos por bone) e também ele reconhece os IDs das texturas no arquivo MTL;
 
+**Update: B.1.4.03**
+<br> Arrumado a compatibilidade com alguns arquivos bins, por exemplo, os bins do cenário r215;
+<br>Agora, ao extrair o arquivo .bin as "normals" serão normalizadas em vez de ser dividido por um valor padrão;
+<br> Ao fazer repack as normals dos arquivos .obj e .smd serão normalizadas para evitar erros.
+<br> O programa, ao gerar os arquivos .obj e .smd, não terá mais os zeros não significativos dos números, mudança feita para gerar arquivos menores.
+<br> Adicionado suporte para carregar cores de vértice do arquivo .obj, para .bin do tipo "ScenarioColor";  
+
 **Update: B.1.4.0.2**
 <br>Arrumado bug ao carregar o arquivo .idxmaterial;
 
@@ -109,4 +116,4 @@ ss_term_008.BIN
 Encontra-se no RE4_PS2_BIN_TOOL, código modificado, as modificações podem ser vistas aqui: [link](https://github.com/JADERLINK/ObjLoader).
 
 **At.te: JADERLINK**
-<br>2023-03-03
+<br>2023-05-01

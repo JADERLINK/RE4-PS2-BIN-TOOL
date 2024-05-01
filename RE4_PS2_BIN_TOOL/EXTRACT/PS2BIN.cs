@@ -8,68 +8,36 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 {
     #region representação do bin
 
-    public class BIN
+    public class PS2BIN
     {
-        //new byte[2];
-        public byte[] unknown0 = null;
-
-        //new byte[2];
-        public byte[] unknown1 = null;
-
-        //bones point //bone_addr
-        public uint bonesPoint;
-
-        //unknown2 //unk003
-        public byte unknown2;
-
-        //BonesCount //bone_count
+        //binHeader
+        public ushort Magic;
+        public ushort Unknown1; //nTex
+        public uint BonesPoint;
+        public byte Unknown2; //frac
         public byte BonesCount;
-
-        //MaterialCount //table1_count
         public ushort MaterialCount;
-
-        //MaterialsPoint //table1_addr
         public uint MaterialOffset;
-
-        //unknown4 start
-
-        //new byte[8];
-        public byte[] Pad8Bytes; //CD-CD-CD-CD-CD-CD-CD-CD
-
-        //byte[4];
-        public byte[] unknown4_B; //18-08-03-20 or 01-08-01-20
-
-        //bonepair_addr_
-        public uint bonepairPoint; // 0x0
-
-        //new byte[4];
-        public byte[] unknown4_unk008; // padding
-
-        //new byte[4];
-        public byte[] unknown4_unk009;
-
-        //boundbox_addr
-        public uint boundboxPoint; //fixo 0x30
-
-        //new byte[4];
-        public byte[] unknown4_unk010; // padding
-
+        public uint Padding1; //CD-CD-CD-CD
+        public uint Padding2; //CD-CD-CD-CD
+        public uint VersionFlag; //18-08-03-20 or 01-08-01-20 //unknown4_B
+        public uint BonepairPoint; // normalmente é 0x0
+        public uint Unknown408; // padding, sempre 0x00
+        public uint TextureFlags; //unknown4_unk009
+        public uint BoundboxPoint; //fixo 0x30
+        public uint Unknown410; // padding, sempre 0x00
         public float DrawDistanceNegativeX;
         public float DrawDistanceNegativeY;
         public float DrawDistanceNegativeZ;
         public float DrawDistanceNegativePadding;
-
         public float DrawDistancePositiveX;
         public float DrawDistancePositiveY;
         public float DrawDistancePositiveZ;
-
-        //new byte[4];
-        public byte[] Pad4Bytes; // CD-CD-CD-CD
-
-        // unknown4 end
+        public uint Padding3; // CD-CD-CD-CD
+        //end binHeader
 
         //bonepair
-        public uint bonepairCount;
+        public uint BonepairCount;
         public byte[][] bonepairLines;
 
         //bonesList
@@ -87,8 +55,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
     public class Bone
     {
-        // new byte[16];
-        public byte[] boneLine;
+        public byte[] boneLine;  // new byte[16];
 
         public sbyte BoneID { get { return (sbyte)boneLine[0x0]; } }
         public sbyte BoneParent { get { return (sbyte)boneLine[0x1]; } }
@@ -101,10 +68,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
     public class Material
     {
-        // new byte[16];
-        public byte[] materialLine;
-
-        //
+        public byte[] materialLine; // new byte[16];
         public uint nodeTablePoint;
     }
 
@@ -114,12 +78,20 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
         //tamanho total dinâmico, em blocos de 0x10
         public byte[] NodeHeaderArray;
 
+        //partes
+        public ushort TotalBytesAmount;
+        public byte segmentAmountWithoutFirst;
+        public byte BonesIdAmount;
+        public byte[] NodeBoneList;
+
         //segmentos no node (valorTotalDePartes), tinha sido nomeado como subMesh
         public Segment[] Segments;
     }
 
     public class Segment
     {
+        public bool IsScenarioColor; // extra
+
         //new byte[0x10];
         public byte[] WeightMapHeader;
 
@@ -128,8 +100,9 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
         //--
         //TopTagVifHeader
-        //new byte[0x30];
-        public byte[] TopTagVifHeader;
+        public byte[] TopTagVifHeader2080; //new byte[0x10];
+        public byte[] TopTagVifHeaderWithScale; //new byte[0x10];
+        public byte[] TopTagVifHeader2180; //new byte[0x10];
         public float ConversionFactorValue;
         //--
 
@@ -137,8 +110,7 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
         public VertexLine[] vertexLines;
 
         //EndTagVifCommand
-        //new byte[0x10];
-        public byte[] EndTagVifCommand;
+        public byte[] EndTagVifCommand; //new byte[0x10];
     }
 
     public class WeightMapTableLine

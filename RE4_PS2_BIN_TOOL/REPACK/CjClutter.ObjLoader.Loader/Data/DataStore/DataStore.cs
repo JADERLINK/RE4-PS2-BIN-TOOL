@@ -62,7 +62,7 @@ namespace ObjLoader.Loader.Data.DataStore
         {
             if (_currentGroup == null)
             {
-                _currentGroup = new Group("default", "default", "default");
+                _currentGroup = new Group(_lastGroupName, _lastMaterialName, _lastObjectName);
                 _groups.Add(_currentGroup);
             }
         }

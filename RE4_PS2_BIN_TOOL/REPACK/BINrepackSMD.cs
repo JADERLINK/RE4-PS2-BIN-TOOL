@@ -59,13 +59,17 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                     vertice.Position = position;
 
-                    Vector3 normal = new Vector3(
-                            smd.Triangles[i].Vertexs[t].NormX,
-                            smd.Triangles[i].Vertexs[t].NormZ,
-                            smd.Triangles[i].Vertexs[t].NormY * -1
-                            );
+                    float nx = smd.Triangles[i].Vertexs[t].NormX;
+                    float ny = smd.Triangles[i].Vertexs[t].NormZ;
+                    float nz = smd.Triangles[i].Vertexs[t].NormY * -1;
+                    float NORMAL_FIX = (float)Math.Sqrt((nx * nx) + (ny * ny) + (nz * nz));
+                    NORMAL_FIX = (NORMAL_FIX == 0) ? 1 : NORMAL_FIX;
+                    nx /= NORMAL_FIX;
+                    ny /= NORMAL_FIX;
+                    nz /= NORMAL_FIX;
 
-                    vertice.Normal = normal;
+                    vertice.Normal = new Vector3(nx, ny, nz);
+
 
                     Vector2 texture = new Vector2(
                     smd.Triangles[i].Vertexs[t].U,

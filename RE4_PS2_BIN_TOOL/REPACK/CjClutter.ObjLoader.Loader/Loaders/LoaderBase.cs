@@ -27,7 +27,7 @@ namespace ObjLoader.Loader.Loaders
 
             var fields = currentLine.Trim().Split(null, 2);
             var keyword = fields[0].Trim();
-            var data = fields[1].Trim();
+            var data = (fields.Length >= 2) ? fields[1].Trim() : "";
 
             ParseLine(keyword, data);
         }

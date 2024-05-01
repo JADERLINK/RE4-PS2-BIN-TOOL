@@ -9,7 +9,7 @@ namespace RE4_PS2_BIN_TOOL.ALL
 {
     public static class IdxMaterialParser
     {
-        public static IdxMaterial Parser(BIN bin)
+        public static IdxMaterial Parser(PS2BIN bin)
         {
             IdxMaterial idx = new IdxMaterial();
             idx.MaterialDic = new Dictionary<string, MaterialPart>();
