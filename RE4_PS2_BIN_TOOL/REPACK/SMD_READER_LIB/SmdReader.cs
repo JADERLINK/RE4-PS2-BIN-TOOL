@@ -28,23 +28,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace SMD_READER_API
+namespace SMD_READER_LIB
 {
     // Codigo escrito por JADERLINK
     //https://github.com/JADERLINK
     // referencia do formato SMD
     //https://developer.valvesoftware.com/wiki/SMD
-    // versão do codigo: 1.1.0.0
+    // versão do codigo: 1.1.1
 
     public static class SmdReader
     {
-        //Arquivo invalido, não começa com a tag "version 1"
+        // Arquivo inválido, não começa com a tag "version 1"
         private const string versionError = "Invalid file, does not start with the tag \"version 1\"";
 
-        //Arquivo invalido, não tem a tag "end"
+        // Arquivo inválido, não tem a tag "end"
         private const string endError = "Invalid file, does not have the tag \"end\"";
 
-        //Erro ou comando não implementado 
+        // Erro ou comando não implementado
         private const string commandError = "Error or command not implemented";
 
         public static SMD Reader(StreamReader stream) 
@@ -70,12 +70,12 @@ namespace SMD_READER_API
 
                 if (line.Length == 0)
                 {
-                    // linha vazia
+                    // Linha vazia
                     continue;
                 }
                 else if (line.StartsWith("//"))
                 {
-                    // linha comentada
+                    // Linha comentada
                     continue;
                 }
                 else if (status == Status.RequiresVersion1)
@@ -83,7 +83,7 @@ namespace SMD_READER_API
                     if (line.ToLowerInvariant().Trim().StartsWith("version"))
                     {
                         status = Status.RequiresCommand;
-                        // arquivo valido
+                        // Arquivo valido
                         continue;
                     }
                     else
@@ -283,7 +283,6 @@ namespace SMD_READER_API
                 throw new ArgumentException(endError);
             }
 
-            stream.Close();
             return smd;
         }
 
@@ -612,7 +611,7 @@ namespace SMD_READER_API
         //<int|Parent bone> <float|PosX PosY PosZ> <normal|NormX NormY NormZ> <float|U V> <int|links> <int|Bone ID> <float|Weight> [...]
 
         /// <summary>
-        /// representa em qual posição o vertex apareçe no arquivo, sendo o primeiro com indice 0 
+        /// Representa em qual posição o vertex aparece no arquivo, sendo o primeiro com índice 0
         /// </summary>
         public int VertexID { get; set; }
 

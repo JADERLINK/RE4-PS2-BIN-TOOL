@@ -369,7 +369,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             Line = line;
         }
 
-        public BoneLine(sbyte boneId, sbyte boneParent, float posX, float posY, float posZ)
+        public BoneLine(byte boneId, byte boneParent, float posX, float posY, float posZ)
         {
             BoneId = boneId;
             BoneParent = boneParent;
@@ -381,7 +381,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
         private byte[] _line = new byte[16];
 
         public byte[] Line 
-        { get  { 
+        { get  {
             return _line.ToArray();
             } set {
                 for (int i = 0; i < value.Length && i < _line.Length; i++)
@@ -391,27 +391,27 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             } 
         }
 
-        public sbyte BoneId
+        public byte BoneId
         {
             get 
             {
-               return (sbyte)_line[0];
+               return _line[0];
             }
             set 
             {
-                _line[0] = (byte)value;
+                _line[0] = value;
             }
         }
 
-        public sbyte BoneParent
+        public byte BoneParent
         {
             get
             {
-                return (sbyte)_line[1];
+                return _line[1];
             }
             set
             {
-                _line[1] = (byte)value;
+                _line[1] = value;
             }
         }
 

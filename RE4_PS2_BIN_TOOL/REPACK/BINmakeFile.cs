@@ -321,17 +321,17 @@ namespace RE4_PS2_BIN_TOOL.REPACK
         public static void MakeFinalBinFile(Stream binfile, long startOffset, out long endOffset, FinalStructure finalStructure, IdxBin idxBin, BoneLine[] bones, float ConversionFactorValue, IdxMaterial material) 
         {
 
-            Dictionary<string, byte[]> nodesBytes = new Dictionary<string, byte[]>();
+            List<(string materialName, byte[] arr)> nodesBytes = new List<(string materialName, byte[] arr)>();
 
             foreach (var item in finalStructure.Nodes)
             {
                 //MakeNodeArray
-                nodesBytes.Add(item.Key, MakeNodeArray(item.Value, ConversionFactorValue, idxBin.IsScenarioBin));
+                nodesBytes.Add((item.MaterialName, MakeNodeArray(item, ConversionFactorValue, idxBin.IsScenarioBin)));
             }
 
             nodesBytes = (from ob in nodesBytes
-                          orderby ob.Key
-                          select ob).ToDictionary(k => k.Key, v => v.Value);
+                          orderby ob.materialName
+                          select ob).ToList();
 
             //-----
 
@@ -340,22 +340,22 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             foreach (var item in nodesBytes)
             {
                 MaterialNode mn = new MaterialNode();
-                mn.Name = item.Key;
-                mn.NodeData = item.Value;
+                mn.Name = item.materialName;
+                mn.NodeData = item.arr;
 
                 byte[] header = new byte[0x10];
 
-                string keyMaterial = item.Key.ToUpperInvariant();
+                string keyMaterial = item.materialName.ToUpperInvariant();
 
                 if (material.MaterialDic.ContainsKey(keyMaterial))
                 {
-                    Console.WriteLine($"Used material: " + keyMaterial);
+                    Console.WriteLine($"[{materialNodesCount}] Used material: {keyMaterial}");
 
                     material.MaterialDic[keyMaterial].GetArray().CopyTo(header, 0);
                 }
                 else
                 {
-                    Console.WriteLine($"Not found material: " + keyMaterial);
+                    Console.WriteLine($"[{materialNodesCount}] Not found material: {keyMaterial}");
 
                     header[2] = 0xFF;
                     header[3] = 0xFF;

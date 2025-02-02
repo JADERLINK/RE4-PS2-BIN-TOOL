@@ -55,10 +55,10 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
     public class Bone
     {
-        public byte[] boneLine;  // new byte[16];
+        public byte[] boneLine; // new byte[16];
 
-        public sbyte BoneID { get { return (sbyte)boneLine[0x0]; } }
-        public sbyte BoneParent { get { return (sbyte)boneLine[0x1]; } }
+        public byte BoneID { get { return boneLine[0x0]; } }
+        public byte BoneParent { get { return boneLine[0x1]; } }
 
         public float PositionX { get { return BitConverter.ToSingle(boneLine, 0x4); } }
         public float PositionY { get { return BitConverter.ToSingle(boneLine, 0x8); } }

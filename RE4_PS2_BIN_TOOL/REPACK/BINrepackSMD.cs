@@ -26,8 +26,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
             //carrega o arquivo smd;
             StreamReader streamSMD = new StreamReader(new FileInfo(smdPath).Open(FileMode.Open), Encoding.ASCII);
-            SMD_READER_API.SMD smd = SMD_READER_API.SmdReader.Reader(streamSMD);
-
+            SMD_READER_LIB.SMD smd = SMD_READER_LIB.SmdReader.Reader(streamSMD);
+            streamSMD.Close();
 
             // valor que representa a maior distancia do modelo, tanto para X, Y ou Z
             float FarthestVertex = 0;
@@ -229,14 +229,16 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             //finaliza e cria o arquivo bin
             Stream stream = File.Create(binpath);
             BINmakeFile.MakeFinalBinFile(stream, 0, out _, finalStructure, idxBin, bones, ConversionFactorValue, material);
+            stream.Close();
+
         }
 
 
-        private static BoneLine[] GetBoneLines(SMD_READER_API.SMD smd, float globalScale) 
+        private static BoneLine[] GetBoneLines(SMD_READER_LIB.SMD smd, float globalScale) 
         {
             List<BoneLine> bones = new List<BoneLine>();
 
-            SMD_READER_API.Time time = (from tt in smd.Times
+            SMD_READER_LIB.Time time = (from tt in smd.Times
                          where tt.ID == 0
                          select tt).FirstOrDefault();
 
@@ -247,7 +249,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                 if (time != null)
                 {
-                    SMD_READER_API.Skeleton skeleton = (from ss in time.Skeletons
+                    SMD_READER_LIB.Skeleton skeleton = (from ss in time.Skeletons
                                                         where ss.BoneID == smd.Nodes[i].ID
                                                         select ss).FirstOrDefault();
                     if (skeleton != null)
@@ -255,10 +257,19 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                         bonePos.X = skeleton.PosX * globalScale;
                         bonePos.Y = skeleton.PosZ * globalScale;
                         bonePos.Z = skeleton.PosY * -1 * globalScale;
+
+                        if (bonePos.Z == 0f * -1f) { bonePos.Z = 0; }
+
                     }
                 }
 
-                bones.Add(new BoneLine((sbyte)smd.Nodes[i].ID, (sbyte)smd.Nodes[i].ParentID, bonePos.X, bonePos.Y, bonePos.Z));
+                byte ParentID = (byte)smd.Nodes[i].ParentID;
+                if (smd.Nodes[i].ParentID < 0)
+                {
+                    ParentID = 0xFF;
+                }
+
+                bones.Add(new BoneLine((byte)smd.Nodes[i].ID, ParentID, bonePos.X, bonePos.Y, bonePos.Z));
             }
 
             bones = (from bb in bones

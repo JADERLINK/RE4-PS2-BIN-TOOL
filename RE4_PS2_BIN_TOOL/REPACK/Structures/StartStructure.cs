@@ -273,9 +273,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             TriOrder lastFirtOrder = TriOrder.order_1_2_3;
 
             var Faces = facesGroup.Faces;
-
-            
-            List<StartTriangle> triangles = new List<StartTriangle>();
+   
+            Dictionary<int, StartTriangle> DicTriangles = new Dictionary<int, StartTriangle>();
             for (int i = 0; i < Faces.Count; i++)
             {
                 try
@@ -284,42 +283,102 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                     t.A = Faces[i][0];
                     t.B = Faces[i][1];
                     t.C = Faces[i][2];
-                    triangles.Add(t);
+                    DicTriangles.Add(i, t);
                 }
                 catch (Exception)
                 {
                 }
             }
 
+            Dictionary<Vector3, List<int>> TriDic = new Dictionary<Vector3, List<int>>();
+            foreach (var tri in DicTriangles)
+            {
+                if (!TriDic.ContainsKey(tri.Value.A.Position))
+                {
+                    TriDic.Add(tri.Value.A.Position, new List<int>());
+                }
+                if (!TriDic.ContainsKey(tri.Value.B.Position))
+                {
+                    TriDic.Add(tri.Value.B.Position, new List<int>());
+                }
+                if (!TriDic.ContainsKey(tri.Value.C.Position))
+                {
+                    TriDic.Add(tri.Value.C.Position, new List<int>());
+                }
+
+                TriDic[tri.Value.A.Position].Add(tri.Key);
+                TriDic[tri.Value.B.Position].Add(tri.Key);
+                TriDic[tri.Value.C.Position].Add(tri.Key);
+            }
+
             //---
 
             List<List<StartVertex>> newFaces = new List<List<StartVertex>>();
 
-            if (triangles.Count > 0)
+            if (DicTriangles.Count > 0)
             {
                 List<StartVertex> vtemp = new List<StartVertex>();
 
                 List<StartWeightMap> weightMapTemp = new List<StartWeightMap>();
 
-                StartTriangle last = triangles[0];
-                (int r1, int r2, int r3) lastOrder = (1, 2, 3);
+                int StartKey = 0;
 
-                triangles.RemoveAt(0);
+                StartTriangle last = null;
+                Action SetNewLast = () =>
+                {
+                    int? usedIndex = null;
+
+                    while (true)
+                    {
+                        if (DicTriangles.ContainsKey(StartKey))
+                        {
+                            last = DicTriangles[StartKey];
+                            usedIndex = StartKey;
+                            break;
+                        }
+                        else
+                        {
+                            StartKey++;
+                        }
+                    }
+
+                    if (usedIndex != null)
+                    {
+                        DicTriangles.Remove((int)usedIndex);
+                    }
+                };
+                SetNewLast();
+
+                (int r1, int r2, int r3) lastOrder = (1, 2, 3);
 
                 bool isFirt = true;
                 bool isAdded = false;
 
                 int triangleAddedCount = 1;
 
-                while (triangles.Count != 0)
+                while (DicTriangles.Count != 0)
                 {
-
                     isAdded = false;
                     int contLength = 0;
 
-                    for (int i = 0; i < triangles.Count; i++)
+                    List<(StartTriangle tri, int index)> _triangles = new List<(StartTriangle tri, int index)>();
+                    List<int> TriIndex = new List<int>();
+                    TriIndex.AddRange(TriDic[last.A.Position]);
+                    TriIndex.AddRange(TriDic[last.B.Position]);
+                    TriIndex.AddRange(TriDic[last.C.Position]);
+                    TriIndex = TriIndex.ToHashSet().OrderBy(x => x).ToList(); // ordena e impede de ter triangulo repetido.
+                    foreach (var index in TriIndex)
                     {
-                        StartTriangle cont = triangles[i];
+                        if (DicTriangles.ContainsKey(index))
+                        {
+                            _triangles.Add((DicTriangles[index], index));
+                        }
+                    }
+
+                    for (int i = 0; i < _triangles.Count; i++)
+                    {
+                        int indexCont = _triangles[i].index;
+                        StartTriangle cont = _triangles[i].tri;
 
                         if (As1PositionEqualHashCode(last, cont) && As2VertexEqual(last, cont))
                         {
@@ -355,7 +414,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                                     last = cont;
                                     lastOrder = Order2next;
-                                    triangles.Remove(cont);
+                                    _triangles.Remove((cont, indexCont));
+                                    DicTriangles.Remove(indexCont);
 
                                     isAdded = true;
                                     isFirt = false;
@@ -379,7 +439,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                                     last = cont;
                                     lastOrder = Order2next;
-                                    triangles.Remove(cont);
+                                    _triangles.Remove((cont, indexCont));
+                                    DicTriangles.Remove(indexCont);
 
                                     isAdded = true;
                                     isFirt = false;
@@ -393,9 +454,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             }
 
                         }
-                        //Console.WriteLine("i: " + i);
 
-                    } // fim do  for (int i = 0; i < cont.Length; i++)
+                    } // fim do  for (int i = 0; i < _triangles.Count; i++)
 
                     // considerar que não achou nada
                     // considerar achou e estava status firt
@@ -414,9 +474,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             newFaces.Add(vtemp);
                             vtemp = new List<StartVertex>();
                             weightMapTemp.Clear();
-                            last = triangles[0];
                             lastOrder = (1, 2, 3);
-                            triangles.RemoveAt(0);
+                            SetNewLast();
 
                             isFirt = true;
                             isAdded = false;
@@ -428,9 +487,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             newFaces.Add(vtemp);
                             vtemp = new List<StartVertex>();
                             weightMapTemp.Clear();
-                            last = triangles[0];
                             lastOrder = (1, 2, 3);
-                            triangles.RemoveAt(0);
+                            SetNewLast();
 
                             isFirt = true;
                             isAdded = false;
@@ -438,14 +496,13 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                             continue;
                         }
                     }
-                    else if (vtemp.Count >= 40)
+                    else if (vtemp.Count >= 44 || weightMapTemp.Count >= 15)
                     {
                         newFaces.Add(vtemp);
                         vtemp = new List<StartVertex>();
                         weightMapTemp.Clear();
-                        last = triangles[0];
                         lastOrder = (1, 2, 3);
-                        triangles.RemoveAt(0);
+                        SetNewLast();
 
                         isFirt = true;
                         isAdded = false;
@@ -453,9 +510,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                         continue;
                     }
 
-                   
 
-                } // fim do  while (triangles.Count != 0)
+                } // fim do  while (DicTriangles.Count != 0)
 
 
                 // ultima seção
@@ -473,7 +529,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                 }
 
 
-            }// fim do  if (triangles.Count > 0)
+            }// fim do  if (DicTriangles.Count > 0)
 
             return new StartFacesGroup(newFaces);
         }

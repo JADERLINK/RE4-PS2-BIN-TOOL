@@ -15,9 +15,6 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
             foreach (var item in intermediaryStructure.Groups)
             {
-                FinalNode node = new FinalNode();
-                node.MaterialName = item.Key;
-
                 List<IntermediaryFace> FacesList = new List<IntermediaryFace>();
                 FacesList.AddRange(item.Value.Faces);
                 FacesList = FacesList.OrderByDescending(o => o.Vertexs.Count).ToList();
@@ -216,9 +213,34 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                 }
 
 
-                node.BonesIDs = usedBones.ToArray();
-                node.Segments = segments.ToArray();
-                finalStructure.Nodes.Add(item.Key, node);
+                //calc
+                const int maxSegs = 255;
+                int Parts = segments.Count / maxSegs;
+                int _rest = segments.Count % maxSegs;
+                Parts += _rest != 0 ? 1 : 0;
+
+                if (Parts == 1)
+                {
+                    FinalNode node = new FinalNode();
+                    node.MaterialName = item.Key;
+                    node.BonesIDs = usedBones.ToArray();
+                    node.Segments = segments.ToArray();
+                    finalStructure.Nodes.Add(node);
+                }
+                else if (Parts > 1)
+                {
+                    for (int i = 0; i < Parts; i++)
+                    {
+                        var segs = segments.Skip(i * maxSegs).Take(maxSegs).ToArray();
+
+                        FinalNode node = new FinalNode();
+                        node.MaterialName = item.Key;
+                        node.BonesIDs = usedBones.ToArray();
+                        node.Segments = segs;
+                        finalStructure.Nodes.Add(node);
+                    }
+                }
+              
             }
 
             return finalStructure;

@@ -22,7 +22,12 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
 
             for (int i = 0; i < bin.bones.Length; i++)
             {
-                text.WriteLine(bin.bones[i].BoneID + " \"BONE_" + bin.bones[i].BoneID.ToString("D3") + "\" " + bin.bones[i].BoneParent);
+                short BoneParent = bin.bones[i].BoneParent;
+                if (BoneParent == 0xFF)
+                {
+                    BoneParent = -1;
+                }
+                text.WriteLine(bin.bones[i].BoneID + " \"BONE_" + bin.bones[i].BoneID.ToString("D3") + "\" " + BoneParent);
             }
 
             text.WriteLine("end");

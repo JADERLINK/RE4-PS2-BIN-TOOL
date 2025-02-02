@@ -25,12 +25,14 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
@@ -74,6 +76,7 @@
     <Compile Include="REPACK\BINrepackIntermediary.cs" />
     <Compile Include="REPACK\MtlConverter.cs" />
     <Compile Include="REPACK\MtlLoad.cs" />
+    <Compile Include="REPACK\SMD_READER_LIB\SmdReader.cs" />
     <Compile Include="REPACK\Structures\FinalStructure.cs" />
     <Compile Include="REPACK\Structures\IntermediaryStructure.cs" />
     <Compile Include="REPACK\Structures\StartStructure.cs" />
@@ -130,7 +133,6 @@
     <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\TextureParser.cs" />
     <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\TypeParserBase.cs" />
     <Compile Include="REPACK\CjClutter.ObjLoader.Loader\TypeParsers\VertexParser.cs" />
-    <Compile Include="REPACK\SMD_READER_API\SmdReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

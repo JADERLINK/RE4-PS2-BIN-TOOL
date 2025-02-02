@@ -8,11 +8,11 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 {
     public class FinalStructure
     {
-        public Dictionary<string, FinalNode> Nodes { get; set; }
+        public List<FinalNode> Nodes { get; set; }
 
         public FinalStructure()
         {
-            Nodes = new Dictionary<string, FinalNode>();
+            Nodes = new List<FinalNode>();
         }
     }
 

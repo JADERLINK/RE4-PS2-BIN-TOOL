@@ -190,6 +190,7 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             //finaliza e cria o arquivo bin
             Stream stream = File.Create(binpath);
             BINmakeFile.MakeFinalBinFile(stream, 0, out _ , finalStructure, idxBin, idxBin.BoneLines, ConversionFactorValue, material);
+            stream.Close();
 
         }
 
