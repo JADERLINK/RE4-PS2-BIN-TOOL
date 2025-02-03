@@ -239,8 +239,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
             List<BoneLine> bones = new List<BoneLine>();
 
             SMD_READER_LIB.Time time = (from tt in smd.Times
-                         where tt.ID == 0
-                         select tt).FirstOrDefault();
+                                        where tt.ID == 0
+                                        select tt).FirstOrDefault();
 
             for (int i = 0; i < smd.Nodes.Count; i++)
             {
@@ -269,12 +269,8 @@ namespace RE4_PS2_BIN_TOOL.REPACK
                     ParentID = 0xFF;
                 }
 
-                bones.Add(new BoneLine((byte)smd.Nodes[i].ID, ParentID, bonePos.X, bonePos.Y, bonePos.Z));
+                bones.Add(new BoneLine((byte)(ushort)smd.Nodes[i].ID, ParentID, bonePos.X, bonePos.Y, bonePos.Z));
             }
-
-            bones = (from bb in bones
-                     orderby bb.BoneId
-                     select bb).ToList();
 
             return bones.ToArray();
         }

@@ -45,11 +45,11 @@ namespace RE4_PS2_BIN_TOOL.REPACK
 
                         vertex.Links = Faces[i][t].WeightMap.Links;
 
-                        vertex.BoneID1 = Faces[i][t].WeightMap.BoneID1;
+                        vertex.BoneID1 = (byte)(ushort)Faces[i][t].WeightMap.BoneID1;
                         vertex.Weight1 = Faces[i][t].WeightMap.Weight1;
-                        vertex.BoneID2 = Faces[i][t].WeightMap.BoneID2;
+                        vertex.BoneID2 = (byte)(ushort)Faces[i][t].WeightMap.BoneID2;
                         vertex.Weight2 = Faces[i][t].WeightMap.Weight2;
-                        vertex.BoneID3 = Faces[i][t].WeightMap.BoneID3;
+                        vertex.BoneID3 = (byte)(ushort)Faces[i][t].WeightMap.BoneID3;
                         vertex.Weight3 = Faces[i][t].WeightMap.Weight3;
 
                         face.Vertexs.Add(vertex);

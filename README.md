@@ -6,6 +6,10 @@ Extract and repack RE4 PS2 BIN files
 Esse é o código resultado a partir das pesquisas sobre os arquivos .bin do re4 de ps2, realizadas por Jaderlink em conjunto com o HardRain.
 <br>Pode considerar que o programa está na fase final de desenvolvimento em questão de usabilidade. Você pode editar todos BIN do jogo, com suporte aos arquivos OBJ, SMD (suporte a pesos por bone) e também ele reconhece os IDs das texturas no arquivo MTL;
 
+**Update: B.1.4.5**
+<br> Correção: Arrumados os problemas com bones com Ids repetidos.
+<br> Nota: bones com Ids maiores que 254 são inválidos;
+
 **Update: B.1.4.4**
 <br> Correção: arrumados os Ids dos bones com numeração maior que 128 que anteriormente ficavam com valor negativo;
 <br> Correção: Quando a quantidade de "segments" ultrapassar o limite permitido por material, agora vai ser criado um novo material. (Não vão mais faltar vértices no modelo);
@@ -123,4 +127,4 @@ ss_term_008.BIN
 Encontra-se no RE4_PS2_BIN_TOOL, código modificado, as modificações podem ser vistas aqui: [link](https://github.com/JADERLINK/ObjLoader).
 
 **At.te: JADERLINK**
-<br>2025-02-02
+<br>2025-02-03

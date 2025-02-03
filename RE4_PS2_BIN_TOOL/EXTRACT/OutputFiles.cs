@@ -20,14 +20,41 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             text.WriteLine("version 1");
             text.WriteLine("nodes");
 
-            for (int i = 0; i < bin.bones.Length; i++)
+            //Bones Fix
+            (uint BoneID, short BoneParent, float p1, float p2, float p3)[] FixedBones = new (uint BoneID, short BoneParent, float p1, float p2, float p3)[bin.bones.Length];
+
+            // Bone ID, number of times found
+            Dictionary<byte, int> BoneCheck = new Dictionary<byte, int>();
+            for (int i = bin.bones.Length - 1; i >= 0; i--)
             {
+                byte InBoneID = bin.bones[i].BoneID;
+                uint OutBoneID = InBoneID;
+                if (BoneCheck.ContainsKey(InBoneID))
+                {
+                    OutBoneID += (uint)(0x100u * BoneCheck[InBoneID]);
+                    BoneCheck[InBoneID]++;
+                }
+                else
+                {
+                    BoneCheck.Add(InBoneID, 1);
+                }
+
                 short BoneParent = bin.bones[i].BoneParent;
                 if (BoneParent == 0xFF)
                 {
                     BoneParent = -1;
                 }
-                text.WriteLine(bin.bones[i].BoneID + " \"BONE_" + bin.bones[i].BoneID.ToString("D3") + "\" " + BoneParent);
+
+                float p1 = bin.bones[i].PositionX / CONSTs.GLOBAL_SCALE;
+                float p2 = bin.bones[i].PositionZ * -1 / CONSTs.GLOBAL_SCALE;
+                float p3 = bin.bones[i].PositionY / CONSTs.GLOBAL_SCALE;
+
+                FixedBones[i] = (OutBoneID, BoneParent, p1, p2, p3);
+            }
+
+            for (int i = 0; i < FixedBones.Length; i++)
+            {
+                text.WriteLine(FixedBones[i].BoneID + " \"BONE_" + FixedBones[i].BoneID.ToString("D3") + "\" " + FixedBones[i].BoneParent);
             }
 
             text.WriteLine("end");
@@ -35,12 +62,12 @@ namespace RE4_PS2_BIN_TOOL.EXTRACT
             text.WriteLine("skeleton");
             text.WriteLine("time 0");
 
-            for (int i = 0; i < bin.bones.Length; i++)
+            for (int i = 0; i < FixedBones.Length; i++)
             {
-                text.WriteLine(bin.bones[i].BoneID + "  " +
-                    (bin.bones[i].PositionX / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
-                    (bin.bones[i].PositionZ * -1 / CONSTs.GLOBAL_SCALE).ToFloatString() + " " +
-                    (bin.bones[i].PositionY / CONSTs.GLOBAL_SCALE).ToFloatString() + "  0.0 0.0 0.0");
+                text.WriteLine(FixedBones[i].BoneID + "  " +
+                               FixedBones[i].p1.ToFloatString() + " " +
+                               FixedBones[i].p2.ToFloatString() + " " +
+                               FixedBones[i].p3.ToFloatString() + "  0.0 0.0 0.0");
             }
 
             text.WriteLine("end");
