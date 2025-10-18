@@ -1,14 +1,43 @@
 # Change Log
 
-Aqui consta o conteúdo das alterações anteriores da versão B.1.4.0.0:
+Aqui consta o conteúdo das alterações anteriores à V.1.5.0:
 
-<br>**Update: beta.1.3.0.1**
+**Update: B.1.4.5**
+<br> Correção: Arrumados os problemas com bones com Ids repetidos.
+<br> Nota: bones com Ids maiores que 254 são inválidos;
+
+**Update: B.1.4.4**
+<br> Correção: arrumados os Ids dos bones com numeração maior que 128 que anteriormente ficavam com valor negativo;
+<br> Correção: Quando a quantidade de "segments" ultrapassar o limite permitido por material, agora vai ser criado um novo material. (Não vão mais faltar vértices no modelo);
+<br> Nota: O jogo tem um limite de quantos vértices ele consegue carregar/processar;
+<br> Melhoria: melhorado a velocidade do repack, agora é muito rápido fazer o repack.
+<br> E foram feitas melhorias gerais no código;
+
+**Update: B.1.4.03**
+<br> Arrumado a compatibilidade com alguns arquivos bins, por exemplo, os bins do cenário r215;
+<br>Agora, ao extrair o arquivo .bin as "normals" serão normalizadas em vez de ser dividido por um valor padrão;
+<br> Ao fazer repack as normals dos arquivos .obj e .smd serão normalizadas para evitar erros.
+<br> O programa, ao gerar os arquivos .obj e .smd, não terá mais os zeros não significativos dos números, mudança feita para gerar arquivos menores.
+<br> Adicionado suporte para carregar cores de vértice do arquivo .obj, para .bin do tipo "ScenarioColor";  
+
+**Update: B.1.4.0.2**
+<br>Arrumado bug ao carregar o arquivo .idxmaterial;
+
+**Update: B.1.4.0.1**
+<br>Corrigido bug que crashava o programa, agora, ao ter material sem a textura principal "map_Kd", será preenchido o Id da textura como 0000; 
+
+### Update: B.1.4.0.0
+
+Agora o "Extract" e "Repack" são feitos somente por um programa, melhorei como os índices das texturas são atribuídos ao modelo, que pode ser feito usando o arquivo MTL, ou o arquivo "ixdmaterial";
+<br>Os nomes dos "Bones" agora recebem como nome o ID do "Bone";
+
+**Update: beta.1.3.0.1**
 
 Leia a baixo para entender sobre o bug corrigido, que em resumo, agora a criação dos bins não mais apresentarão artefatos;
 <br>Corrigido bug no BINrepack: na criação de bin com modelos com muita variedade de valores de pesos de vértice, estava criando artefatos nos modelos (linhas que saiam do modelo e iam em direção ao topo esquerdo da tela), explicação: para cada malha (conjunto de face) de cada material é divido por "segments" que é composto posto por um bloco de dados das vértices (que tem um limite de 44 vértices por "segment") e por um bloco composto pelos pesos das vértices, e antes não estava considerando um limite de tamanho, que o que estava ocasionado o bug pois poderia acontecer de ultrapassar esse limite e ocasionar esses artefatos, agora foi corrigido e imposto um limite (de 15 conjuntos de pesos por segment), então não deve mais ter esses artefatos.
 
 
-<br>**Update: beta.1.3.0.0**
+**Update: beta.1.3.0.0**
 
 Agora o programa deixou de ser alfa e virou beta, e os programas foram renomeados.
 <br> é recomendado usar essa versão do programa e vez das anteriores. (use a beta.1.3.0.1)
@@ -17,8 +46,7 @@ Agora o programa deixou de ser alfa e virou beta, e os programas foram renomeado
 * Para o programa do "Decoder", agora será necessário usar somente um arquivo .bat, pois ele ira reconhecer automaticamente o tipo de bin, e caso o arquivo seja incompatível com o programa, ele vai mostrar um aviso.
 * A versão beta.1.3.0.0 é totalmente compatível com os arquivos da versão alfa.1.2.0.0.
 
-
-<br>**Update: alfa.1.2.0.0**
+**Update: alfa.1.2.0.0**
 
 Nota: use a versão beta.1.3.0.1.
 <br>Agora temos suporte ao modelo 3d SMD (StudioModel Data), com suporte aos bones e pintura de peso por vértice. <del> Porem os arquivos bin gerados pelo smd sera maior que os gerados pelos obj, pois esse formato ainda não foi feito o suporte a compressão de vértices (Triangle Strip), no qual se encontra em desenvolvimento.</del>
