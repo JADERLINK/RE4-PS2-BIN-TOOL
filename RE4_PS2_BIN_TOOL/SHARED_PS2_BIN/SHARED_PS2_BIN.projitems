@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>874cd3f9-6123-4c96-9750-81f12ae39083</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SHARED_PS2_BIN</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\BoundingBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\HeaderExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\IdxMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\IdxMaterialLoad.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\IdxMaterialParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\IdxMtl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\IdxMtlParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ALL\MaterialPart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXTRACT\BINdecoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXTRACT\Debug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXTRACT\OutputFiles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXTRACT\OutputMaterial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXTRACT\PS2BIN.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\BINmakeFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\BINrepackFinal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\BINrepackIntermediary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\BINrepackOBJ.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\BINrepackSMD.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\FinalBoneLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\IdxPs2Bin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\MtlConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\MtlLoad.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\RepackProps.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\Structures\CompressStartStructure.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\Structures\FinalStructure.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\Structures\IntermediaryStructure.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)REPACK\Structures\StartStructure.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SHARED_ALL\CONSTs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SHARED_ALL\FloatExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SHARED_ALL\Utils.cs" />
+  </ItemGroup>
+</Project>

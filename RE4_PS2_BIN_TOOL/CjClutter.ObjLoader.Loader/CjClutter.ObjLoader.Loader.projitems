@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>8a3a7579-5ef1-448e-a7e3-2bf569f56ed4</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>CjClutter.ObjLoader.Loader</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Common\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\DataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IFaceGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IGroupNameDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\ILineGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IMaterialDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IMaterialNameDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IMtlLibDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\INormalDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IObjectNameDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\ITextureDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\DataStore\IVertexDataStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Elements\Face.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Elements\Group.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Elements\Line.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Material.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\Vec3.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\VertexData\Normal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\VertexData\Texture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Data\VertexData\Vertex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\IMtlLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\IMtlLoaderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\IObjLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\IObjLoaderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\LoaderBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\LoadResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\MtlLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\MtlLoaderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\ObjLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loaders\ObjLoaderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\FaceParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\GroupNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IFaceParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IGroupNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\ILineParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IMaterialNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IMaterialParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IMtlLibParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\INormalParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IObjectNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\ITextureParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\ITypeParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\Interfaces\IVertexParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\LineParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\MaterialNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\MaterialParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\MtlLibParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\NormalParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\ObjectNameParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\TextureParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\TypeParserBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeParsers\VertexParser.cs" />
+  </ItemGroup>
+</Project>
